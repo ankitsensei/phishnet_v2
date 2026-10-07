@@ -1,12 +1,12 @@
 [
   {
-    "id": "thr-8952",
-    "url": "https://[Image Screenshot]: SCR-20260929-swha.png",
-    "domain": "[Image Screenshot]: SCR-20260929-swha.png",
+    "id": "thr-6023",
+    "url": "https://[Image Screenshot]: Screenshot 2026-09-30 at 11.19.07 PM.png",
+    "domain": "[Image Screenshot]: Screenshot 2026-09-30 at 11.19.07 PM.png",
     "targetBrand": "SBI YONO",
     "threatType": "FAKE_UPI_PORTAL",
     "discoverySource": "USER_REPORT",
-    "discoveryTimestamp": "2026-10-07 16:28:28",
+    "discoveryTimestamp": "2026-10-07 17:12:06",
     "severity": "HIGH",
     "status": "CONFIRMED_PHISH",
     "similarityScore": 83.1,
@@ -31,8 +31,8 @@
       "+91 98765 43210"
     ],
     "campaignId": "camp-yono-01",
-    "campaignName": "HDFC NetBanking Credential Grabber",
-    "threatActorSyndicate": "MuleMatrix Network",
+    "campaignName": "Op YONO-Shield Harvester",
+    "threatActorSyndicate": "ShadowVPA Syndicate (Jamtara-NCR Cell)",
     "evasionTactics": {
       "antiBotGating": true,
       "canvasFingerprinting": true,
@@ -44,23 +44,77 @@
     },
     "screenshotUrl": "/assets/evidence/sbi_clone.webp",
     "genuineReferenceUrl": "https://onlinesbi.sbi / sbiyono.sbi",
-    "evidenceHash": "1c664d18a65aca35cf790ac60292bb85edf4653265e1778073df352253f1514c",
+    "evidenceHash": "5fc33290f87b6f3742e0fa09e0dc704a6c882aac588c68cb3987c561af04f315",
     "timeline": [
       {
-        "time": "21:58:28",
+        "time": "22:42:06",
         "event": "Source analyzed: detected 83.1% Fake probability",
         "actor": "Autonomous Sentinel Engine"
       }
     ]
   },
   {
-    "id": "thr-6077",
+    "id": "thr-2040",
+    "url": "https://[Image Screenshot]: SCR-20260929-swha.png",
+    "domain": "[Image Screenshot]: SCR-20260929-swha.png",
+    "targetBrand": "SBI YONO",
+    "threatType": "FAKE_UPI_PORTAL",
+    "discoverySource": "USER_REPORT",
+    "discoveryTimestamp": "2026-10-07 17:21:12",
+    "severity": "HIGH",
+    "status": "CONFIRMED_PHISH",
+    "similarityScore": 83.1,
+    "pHashDistance": 2,
+    "structuralSSIM": 0.987,
+    "domEditDistance": 0.03,
+    "logoConfidence": 95.4,
+    "ip": "185.220.101.44",
+    "asn": "AS44050",
+    "asnName": "Petersburg Offshore Networks",
+    "country": "Seychelles (RU Host)",
+    "countryCode": "SC",
+    "registrar": "NameSilo LLC",
+    "sslIssuer": "Let's Encrypt Authority E6",
+    "sslSerial": "04a2991823ab",
+    "dnsNameservers": [],
+    "extractedUPI_VPA": [
+      "sbiyono.instantkyc@paytm",
+      "refund.sbiyono@ybl"
+    ],
+    "extractedPhoneNumbers": [
+      "+91 98765 43210"
+    ],
+    "campaignId": "camp-yono-01",
+    "campaignName": "Op YONO-Shield Harvester",
+    "threatActorSyndicate": "ShadowVPA Syndicate (Jamtara-NCR Cell)",
+    "evasionTactics": {
+      "antiBotGating": true,
+      "canvasFingerprinting": true,
+      "geoFencingIndiaOnly": true,
+      "userAgentFiltering": true,
+      "devtoolsBlocker": true,
+      "dynamicDomRedirection": true,
+      "fakeSslBadge": true
+    },
+    "screenshotUrl": "/assets/evidence/sbi_clone.webp",
+    "genuineReferenceUrl": "https://onlinesbi.sbi / sbiyono.sbi",
+    "evidenceHash": "8e2a592c06032896bdb57d7ee479b56de08439a22f43d3426523e20db6da314c",
+    "timeline": [
+      {
+        "time": "22:51:12",
+        "event": "Source analyzed: detected 83.1% Fake probability",
+        "actor": "Autonomous Sentinel Engine"
+      }
+    ]
+  },
+  {
+    "id": "thr-1822",
     "url": "https://sbi-yono-pan-kyc-update.live/verify-account.php",
     "domain": "sbi-yono-pan-kyc-update.live",
     "targetBrand": "SBI YONO",
     "threatType": "FAKE_UPI_PORTAL",
     "discoverySource": "USER_REPORT",
-    "discoveryTimestamp": "2026-10-07 16:29:06",
+    "discoveryTimestamp": "2026-10-07 17:22:21",
     "severity": "HIGH",
     "status": "CONFIRMED_PHISH",
     "similarityScore": 88.1,
@@ -89,8 +143,8 @@
     ],
     "qrCodePayload": "upi://pay?pa=sbikyc.refund99@paytm&pn=SBI_KYC_VERIFICATION&am=1.00&cu=INR&tn=KYC_Activation_Refund",
     "campaignId": "camp-yono-01",
-    "campaignName": "BHIM-Shield Dropper Trojan (APK)",
-    "threatActorSyndicate": "AndroidStealer-IN",
+    "campaignName": "Op YONO-Shield Harvester",
+    "threatActorSyndicate": "ShadowVPA Syndicate (Jamtara-NCR Cell)",
     "evasionTactics": {
       "antiBotGating": true,
       "canvasFingerprinting": true,
@@ -102,10 +156,10 @@
     },
     "screenshotUrl": "/assets/evidence/sbi_clone.webp",
     "genuineReferenceUrl": "https://onlinesbi.sbi / sbiyono.sbi",
-    "evidenceHash": "c3c2674d8433f7ceb2cd20e0c8268c6f9d7201330b11025d601f3d44d82f01c3",
+    "evidenceHash": "5156d6abf0dd46c4d10596556ffb95c6f5e24d8afce527dad2c5855250f0f402",
     "timeline": [
       {
-        "time": "21:59:06",
+        "time": "22:52:21",
         "event": "Source analyzed: detected 88.1% Fake probability",
         "actor": "Autonomous Sentinel Engine"
       }
