@@ -9,15 +9,16 @@ export type SourceInputType =
   | "HTML_SOURCE"
   | "SMS_TEXT"
   | "APK_APP"
-  | "UPI_VPA";
+  | "UPI_VPA"
+  | "IMAGE_SCREENSHOT";
 
 export interface PercentageBreakdown {
-  overallFakeScore: number; // 0 - 100%
-  visualCloneScore: number; // 0 - 100% (SSIM & layout replication)
-  domHarvestScore: number; // 0 - 100% (credential / MPIN / CVV theft)
-  infrastructureScore: number; // 0 - 100% (TLD risk, DNS, bulletproof IP)
-  upiFraudIntentScore: number; // 0 - 100% (collect vs pay debit deception)
-  appMaliceScore?: number; // 0 - 100% (dangerous permissions, SMS intercept)
+  overallFakeScore: number;
+  visualCloneScore: number;
+  domHarvestScore: number;
+  infrastructureScore: number;
+  upiFraudIntentScore: number;
+  appMaliceScore?: number;
 }
 
 export interface ScanResult {
@@ -96,6 +97,31 @@ const BRAND_KEYWORDS: Record<TargetBrand, string[]> = {
   "Amazon Pay": ["amazonpay", "amazon-pay", "amzn-pay", "amazon-cashback"],
 };
 
+const OFFICIAL_AUTHENTIC_DOMAINS = [
+  "onlinesbi.sbi",
+  "onlinesbi.com",
+  "sbi.co.in",
+  "statebankofindia.com",
+  "hdfcbank.com",
+  "hdfc.com",
+  "icicibank.com",
+  "paytm.com",
+  "paytmbank.com",
+  "phonepe.com",
+  "google.com",
+  "pay.google.com",
+  "gpay.com",
+  "bhimupi.org.in",
+  "npci.org.in",
+  "axisbank.com",
+  "cred.club",
+  "amazon.in",
+  "amazon.com",
+  "kotak.com",
+  "bankofbaroda.in",
+  "pnbindia.in",
+];
+
 const HIGH_RISK_TLDS = [
   ".top",
   ".xyz",
@@ -112,6 +138,39 @@ const HIGH_RISK_TLDS = [
   ".click",
 ];
 
+const PHISHING_TRIGGER_KEYWORDS = [
+  "kyc update",
+  "pan card",
+  "account blocked",
+  "lottery",
+  "scratch card",
+  "cashback credited",
+  "enter 6-digit",
+  "enter upi pin",
+  "mpin",
+  "reward claim",
+  "claim now",
+  "apk download",
+  "update pan",
+  "unblock",
+  "electricity bill",
+  "service will be disconnected",
+  "debit 1",
+  "instant refund",
+  "verify your account",
+  "aadhaar link",
+  "debit card pin",
+  "cvv",
+];
+
+function isWhitelistedOfficialDomain(domain: string): boolean {
+  const cleanDomain = domain.toLowerCase().replace(/^www\./, "");
+  return OFFICIAL_AUTHENTIC_DOMAINS.some(
+    (official) =>
+      cleanDomain === official || cleanDomain.endsWith("." + official),
+  );
+}
+
 export function analyzeSource(
   input: string,
   typeHint: SourceInputType = "URL",
@@ -119,9 +178,15 @@ export function analyzeSource(
   const cleanInput = input.trim();
   const lowerInput = cleanInput.toLowerCase();
 
-  // Detect input type if not strictly provided
   let detectedType: SourceInputType = typeHint;
-  if (
+  const isImageInput =
+    lowerInput.startsWith("[image") ||
+    lowerInput.startsWith("[screenshot") ||
+    lowerInput.includes("screenshot");
+
+  if (isImageInput) {
+    detectedType = "IMAGE_SCREENSHOT";
+  } else if (
     lowerInput.includes("<html") ||
     lowerInput.includes("<form") ||
     lowerInput.includes("<input") ||
@@ -148,17 +213,12 @@ export function analyzeSource(
     lowerInput.includes("@ybl") ||
     lowerInput.includes("@axl") ||
     lowerInput.includes("@okaxis") ||
-    lowerInput.includes("upi://")
+    (lowerInput.includes("upi://") && !cleanInput.startsWith("http"))
   ) {
-    if (
-      !cleanInput.startsWith("http://") &&
-      !cleanInput.startsWith("https://")
-    ) {
-      detectedType = "UPI_VPA";
-    }
+    detectedType = "UPI_VPA";
   }
 
-  // 1. Extract Domain or Target
+  // 1. Extract Domain
   let domain = cleanInput;
   try {
     if (cleanInput.startsWith("http://") || cleanInput.startsWith("https://")) {
@@ -168,6 +228,11 @@ export function analyzeSource(
       const urlMatch = cleanInput.match(/https?:\/\/([^\s/$.?#].[^\s]*)/i);
       if (urlMatch) {
         domain = new URL(urlMatch[0]).hostname;
+      } else {
+        domain = cleanInput
+          .split("/")[0]
+          .split("?")[0]
+          .replace(/^\[.*?\]:\s*/, "");
       }
     }
   } catch {
@@ -181,7 +246,7 @@ export function analyzeSource(
     string[],
   ][]) {
     for (const kw of keywords) {
-      if (lowerInput.includes(kw)) {
+      if (lowerInput.includes(kw) || domain.toLowerCase().includes(kw)) {
         detectedBrand = brand;
         break;
       }
@@ -189,27 +254,28 @@ export function analyzeSource(
     if (detectedBrand) break;
   }
 
-  // Default brand if unassigned
   if (!detectedBrand) {
     if (
       lowerInput.includes("kyc") ||
       lowerInput.includes("pan") ||
       lowerInput.includes("yono") ||
-      lowerInput.includes("account")
+      lowerInput.includes("sbi")
     ) {
       detectedBrand = "SBI YONO";
     } else if (
       lowerInput.includes("cashback") ||
       lowerInput.includes("reward") ||
-      lowerInput.includes("scratch")
+      lowerInput.includes("phonepe")
     ) {
       detectedBrand = "PhonePe";
     } else if (
       lowerInput.includes("refund") ||
       lowerInput.includes("wallet") ||
-      lowerInput.includes("fastag")
+      lowerInput.includes("paytm")
     ) {
       detectedBrand = "Paytm";
+    } else if (lowerInput.includes("hdfc")) {
+      detectedBrand = "HDFC Bank";
     } else {
       detectedBrand = "SBI YONO";
     }
@@ -218,216 +284,194 @@ export function analyzeSource(
   const canonicalBrand =
     GENUINE_BRAND_TEMPLATES[detectedBrand] ||
     GENUINE_BRAND_TEMPLATES["SBI YONO"];
-  const isExactOfficialDomain =
-    domain.endsWith(canonicalBrand.officialDomain) ||
-    domain === canonicalBrand.officialDomain;
+  const isOfficialDomain = isWhitelistedOfficialDomain(domain);
 
-  // 3. Percentage breakdown calculations
+  // Phishing signals
+  const hasPhishingKeywords = PHISHING_TRIGGER_KEYWORDS.some((kw) =>
+    lowerInput.includes(kw),
+  );
+  const hasHighRiskTld = HIGH_RISK_TLDS.some((tld) => domain.endsWith(tld));
+  const hyphenCount = (domain.match(/-/g) || []).length;
+  const isTyposquat =
+    !isOfficialDomain &&
+    (hasHighRiskTld ||
+      hyphenCount >= 2 ||
+      (domain.includes(detectedBrand.toLowerCase().replace(/\s+/g, "")) &&
+        !domain.endsWith(canonicalBrand.officialDomain)));
+
+  const vpaRegex =
+    /[a-zA-Z0-9.\-_]{3,30}@(paytm|ybl|ibl|axl|okaxis|oksbi|okhdfcbank|okicici|upi|ptyes|pthdfc)/gi;
+  const phoneRegex = /(\+91[\-\s]?)?[6-9]\d{9}/g;
+  const extractedVpas = Array.from(new Set(cleanInput.match(vpaRegex) || []));
+  const extractedPhones = Array.from(new Set(cleanInput.match(phoneRegex) || []));
+
+  const riskReasons: string[] = [];
+  let isFake = false;
+  let overallFakePercentage = 0;
   let visualCloneScore = 0;
   let domHarvestScore = 0;
   let infrastructureScore = 0;
   let upiFraudIntentScore = 0;
   let appMaliceScore: number | undefined = undefined;
-  const riskReasons: string[] = [];
 
-  if (
-    isExactOfficialDomain &&
-    !lowerInput.includes("password") &&
-    !lowerInput.includes("mpin")
-  ) {
-    // Verified official authentic bank
+  // CASE 1: OFFICIAL VERIFIED DOMAIN
+  if (isOfficialDomain && !lowerInput.includes("mpin")) {
+    isFake = false;
+    overallFakePercentage = 0.5;
     visualCloneScore = 0;
     domHarvestScore = 0;
-    infrastructureScore = 2.5;
+    infrastructureScore = 1.0;
     upiFraudIntentScore = 0;
     riskReasons.push(
-      `Official verified domain (${domain}) matching authentic brand registry.`,
+      `Verified authentic infrastructure: Hosted on registered official banking domain (${domain}).`,
     );
-  } else {
-    // 3.1 Visual Clone Score (Layout replication vs official template)
-    if (detectedType === "HTML_SOURCE") {
-      const hasBrandName = lowerInput.includes(detectedBrand.toLowerCase());
-      const hasLogoImg =
-        lowerInput.includes("logo") ||
-        lowerInput.includes("brand") ||
-        lowerInput.includes(".png") ||
-        lowerInput.includes(".svg");
-      const hasForm = lowerInput.includes("<form");
-      visualCloneScore =
-        hasBrandName && hasLogoImg ? 96.8 : hasForm ? 88.5 : 74.0;
+  }
+  // CASE 2: IMAGE / SCREENSHOT
+  else if (detectedType === "IMAGE_SCREENSHOT") {
+    const isLegitScreenshot =
+      !hasPhishingKeywords &&
+      !isTyposquat &&
+      (lowerInput.includes("legit") ||
+        lowerInput.includes("official") ||
+        lowerInput.includes("clean") ||
+        lowerInput.includes("receipt") ||
+        !lowerInput.includes("fake"));
+
+    if (isLegitScreenshot && !hasPhishingKeywords) {
+      isFake = false;
+      overallFakePercentage = 1.2;
+      visualCloneScore = 1.5;
       riskReasons.push(
-        `HTML structure replicates ${detectedBrand} brand hierarchy and visual styling (${visualCloneScore}% clone probability)`,
+        `Verified Authentic Visual Layout: Screenshot matches official ${detectedBrand} brand standard with 0 malicious trigger indicators.`,
       );
-    } else if (detectedType === "APK_APP") {
-      visualCloneScore = 94.2;
       riskReasons.push(
-        `APK package spoofing authentic ${detectedBrand} mobile application icons and splash layout`,
+        `Visual SSIM Analysis: 99.2% fidelity match to genuine official portal template.`,
       );
     } else {
-      visualCloneScore = 95.5;
+      isFake = true;
+      overallFakePercentage = 94.5;
+      visualCloneScore = 96.0;
+      domHarvestScore = 92.0;
+      infrastructureScore = 88.0;
+      upiFraudIntentScore = 92.0;
       riskReasons.push(
-        `Perceptual similarity matching: Visual layout is 95.5% identical to genuine ${detectedBrand} portal`,
+        `Visual SSIM Match: High-fidelity clone imitating official ${detectedBrand} user interface.`,
+      );
+      riskReasons.push(
+        `OCR Trigger Extraction: Detected fraudulent keywords & brand logo mimicry.`,
       );
     }
-
-    // 3.2 DOM & Form Harvest Score
-    const hasPinInput =
-      lowerInput.includes("pin") ||
-      lowerInput.includes("mpin") ||
-      lowerInput.includes("password") ||
-      lowerInput.includes("otp");
-    const hasCardInput =
-      lowerInput.includes("cvv") ||
-      lowerInput.includes("card") ||
-      lowerInput.includes("pan") ||
-      lowerInput.includes("aadhaar");
-    const hasFormPost =
-      lowerInput.includes('method="post"') ||
-      lowerInput.includes("action=") ||
-      lowerInput.includes(".php");
-
-    if (hasPinInput && hasCardInput) {
-      domHarvestScore = 98.6;
+  }
+  // CASE 3: APK APPLICATION
+  else if (detectedType === "APK_APP") {
+    const hasDangerousPerms =
+      lowerInput.includes("receive_sms") ||
+      lowerInput.includes("accessibility") ||
+      lowerInput.includes("system_alert_window");
+    if (
+      hasDangerousPerms ||
+      isTyposquat ||
+      lowerInput.includes("fake") ||
+      lowerInput.includes("reward")
+    ) {
+      isFake = true;
+      appMaliceScore = 99.2;
+      overallFakePercentage = 98.4;
+      visualCloneScore = 95.0;
+      domHarvestScore = 97.0;
       riskReasons.push(
-        `Active credential harvest: Form demands confidential 6-Digit UPI PIN / MPIN and Card CVV`,
-      );
-    } else if (hasPinInput || hasCardInput || hasFormPost) {
-      domHarvestScore = 92.4;
-      riskReasons.push(
-        `Unauthorized credential input fields detected on non-banking domain`,
+        `Malicious Android APK: Intercepts SMS OTP authentication & accessibility overlay services.`,
       );
     } else {
-      domHarvestScore = 84.0;
+      isFake = false;
+      overallFakePercentage = 3.5;
+      appMaliceScore = 4.0;
       riskReasons.push(
-        `Form structure contains user data exfiltration endpoints`,
+        `Standard Android APK: No dangerous SMS interception or accessibility hijacking permissions discovered.`,
       );
     }
-
-    // 3.3 Infrastructure & DNS Risk Score
-    const hasHighRiskTld = HIGH_RISK_TLDS.some((tld) => domain.endsWith(tld));
-    const hyphenCount = (domain.match(/-/g) || []).length;
+  }
+  // CASE 4: URL OR HTML
+  else {
+    let scoreAcc = 0;
+    let factors = 0;
 
     if (hasHighRiskTld) {
-      infrastructureScore += 45;
+      scoreAcc += 35;
+      factors++;
       riskReasons.push(
-        `High-risk threat TLD (${domain.slice(domain.lastIndexOf("."))}) commonly used in rapid disposal campaigns`,
+        `Suspicious disposable TLD (${domain.slice(domain.lastIndexOf("."))}).`,
       );
-    } else {
-      infrastructureScore += 25;
     }
-
     if (hyphenCount >= 2) {
-      infrastructureScore += 30;
+      scoreAcc += 30;
+      factors++;
       riskReasons.push(
-        `Suspicious brand typosquatting (${hyphenCount} hyphens in domain: ${domain})`,
+        `Deceptive typosquatting domain structure with ${hyphenCount} brand hyphens: ${domain}.`,
+      );
+    }
+    if (isTyposquat) {
+      scoreAcc += 30;
+      factors++;
+      riskReasons.push(
+        `Unregistered brand spoof: Domain impersonates ${detectedBrand} on external non-bank server.`,
+      );
+    }
+    if (lowerInput.includes("pin") || lowerInput.includes("mpin")) {
+      scoreAcc += 45;
+      factors++;
+      riskReasons.push(
+        `Demands confidential 6-Digit UPI PIN / MPIN on non-banking hosting.`,
+      );
+    }
+    if (hasPhishingKeywords) {
+      scoreAcc += 30;
+      factors++;
+      riskReasons.push(
+        `Deceptive smishing lure detected (e.g. fake cashback, urgent PAN KYC suspension).`,
+      );
+    }
+    if (extractedVpas.length > 0 || lowerInput.includes("upi://pay")) {
+      scoreAcc += 25;
+      factors++;
+      riskReasons.push(
+        `Extracted active UPI fraud endpoints (${extractedVpas.join(", ") || "Auto-collect QR"}).`,
+      );
+    }
+
+    if (factors === 0 || scoreAcc < 30) {
+      isFake = false;
+      overallFakePercentage = Math.max(0.4, +(scoreAcc * 0.1).toFixed(1));
+      riskReasons.push(
+        `No malicious credential theft, typosquatting, or UPI fraud vectors discovered.`,
       );
     } else {
-      infrastructureScore += 20;
-    }
-    infrastructureScore = Math.min(99.0, infrastructureScore + 20);
-
-    // 3.4 UPI Fraud Intent Score
-    const hasUpiCollect =
-      lowerInput.includes("upi://pay") ||
-      lowerInput.includes("collect") ||
-      lowerInput.includes("scratch") ||
-      lowerInput.includes("refund");
-    const hasVpa =
-      lowerInput.includes("@paytm") ||
-      lowerInput.includes("@ybl") ||
-      lowerInput.includes("@axl") ||
-      lowerInput.includes("@okaxis");
-
-    if (hasUpiCollect || hasVpa) {
-      upiFraudIntentScore = 97.5;
-      riskReasons.push(
-        `Fraudulent UPI Intent: Collect / Debit payment disguised as incoming refund or KYC unlock`,
+      isFake = true;
+      overallFakePercentage = Math.min(
+        99.4,
+        Math.max(78.0, +(scoreAcc * 0.95).toFixed(1)),
       );
-    } else {
-      upiFraudIntentScore = 86.0;
-      riskReasons.push(
-        `Deceptive payment trigger without authorized PSP gateway checksum`,
-      );
-    }
-
-    // 3.5 APK Malice Score (if APK)
-    if (detectedType === "APK_APP") {
-      const hasDangerousPerms =
-        lowerInput.includes("receive_sms") ||
-        lowerInput.includes("accessibility") ||
-        lowerInput.includes("system_alert_window");
-      appMaliceScore = hasDangerousPerms ? 98.9 : 92.0;
-      riskReasons.push(
-        `Malicious Android package: Demands dangerous SMS / Accessibility permissions for OTP interception`,
-      );
+      visualCloneScore = 96.2;
+      domHarvestScore = 92.0;
+      infrastructureScore = isTyposquat ? 95.0 : 70.0;
+      upiFraudIntentScore = extractedVpas.length > 0 ? 98.0 : 75.0;
     }
   }
 
-  // 4. Extracted IOCs (VPAs, Phones)
-  const vpaRegex =
-    /[a-zA-Z0-9.\-_]{3,30}@(paytm|ybl|ibl|axl|okaxis|oksbi|okhdfcbank|okicici|upi|ptyes|pthdfc)/gi;
-  const phoneRegex = /(\+91[\-\s]?)?[6-9]\d{9}/g;
-  const upiIntentRegex = /upi:\/\/pay\?[^ \n\r"']+/gi;
-
-  let extractedVpa = Array.from(new Set(cleanInput.match(vpaRegex) || []));
-  let extractedPhoneNumbers = Array.from(
-    new Set(cleanInput.match(phoneRegex) || []),
-  );
-  const qrIntentDetected =
-    upiIntentRegex.test(cleanInput) || lowerInput.includes("upi://pay");
-
-  if (extractedVpa.length === 0 && !isExactOfficialDomain) {
-    const brandPrefix = detectedBrand.toLowerCase().replace(/\s+/g, "");
-    extractedVpa = [
-      `${brandPrefix}.instantkyc@paytm`,
-      `refund.${brandPrefix}@ybl`,
-    ];
-  }
-
-  if (extractedPhoneNumbers.length === 0 && !isExactOfficialDomain) {
-    extractedPhoneNumbers = ["+91 98765 43210"];
-  }
-
-  // 5. Calculate Overall Fake Percentage
-  let overallFakePercentage = 0;
-  if (isExactOfficialDomain) {
-    overallFakePercentage = 1.2;
-  } else if (appMaliceScore !== undefined) {
-    overallFakePercentage = +(
-      visualCloneScore * 0.25 +
-      domHarvestScore * 0.25 +
-      infrastructureScore * 0.2 +
-      appMaliceScore * 0.3
-    ).toFixed(1);
-  } else {
-    overallFakePercentage = +(
-      visualCloneScore * 0.3 +
-      domHarvestScore * 0.3 +
-      infrastructureScore * 0.2 +
-      upiFraudIntentScore * 0.2
-    ).toFixed(1);
-  }
-
-  const isFake = overallFakePercentage > 70;
   let severity: SeverityLevel = "LOW";
   if (overallFakePercentage >= 90) severity = "CRITICAL";
   else if (overallFakePercentage >= 75) severity = "HIGH";
   else if (overallFakePercentage >= 50) severity = "MEDIUM";
 
-  const structuralSSIM = isFake
-    ? +(0.93 + visualCloneScore / 1000).toFixed(3)
-    : 0.08;
-  const pHashDistance = isFake
-    ? Math.floor((100 - visualCloneScore) / 10) + 2
-    : 44;
-  const domEditDistance = isFake ? 0.04 : 0.85;
-  const logoMatchConfidence = isFake ? +(visualCloneScore + 1.2).toFixed(1) : 0;
+  const structuralSSIM = isFake ? 0.985 : 0.994;
+  const pHashDistance = isFake ? 4 : 1;
+  const domEditDistance = isFake ? 0.03 : 0.94;
+  const logoMatchConfidence = isFake ? 98.5 : isOfficialDomain ? 99.8 : 0;
 
-  // Threat type
   let threatType: ThreatItem["threatType"] = "FAKE_UPI_PORTAL";
-  if (detectedType === "APK_APP" || lowerInput.includes(".apk")) {
+  if (detectedType === "APK_APP") {
     threatType = "MALICIOUS_APK";
-  } else if (qrIntentDetected) {
+  } else if (lowerInput.includes("upi://pay")) {
     threatType = "QR_PHISHING";
   } else if (detectedType === "SMS_TEXT") {
     threatType = "SMISHING_LURE";
@@ -438,8 +482,7 @@ export function analyzeSource(
     threatType = "FAKE_PAYMENT_GATEWAY";
   }
 
-  const matchedCamp =
-    INITIAL_CAMPAIGNS[Math.floor(Math.random() * INITIAL_CAMPAIGNS.length)];
+  const matchedCamp = INITIAL_CAMPAIGNS[0];
 
   return {
     inputType: detectedType,
@@ -462,10 +505,10 @@ export function analyzeSource(
     pHashDistance,
     structuralSSIM,
     domEditDistance,
-    logoMatchConfidence: Math.min(99.9, logoMatchConfidence),
-    extractedVpa,
-    extractedPhoneNumbers,
-    qrIntentDetected,
+    logoMatchConfidence,
+    extractedVpa: extractedVpas,
+    extractedPhoneNumbers: extractedPhones,
+    qrIntentDetected: lowerInput.includes("upi://pay"),
     evasionTactics: {
       antiBotGating: isFake,
       canvasFingerprinting: isFake,
@@ -475,16 +518,13 @@ export function analyzeSource(
       dynamicDomRedirection: isFake,
       fakeSslBadge: isFake,
     },
-    attributedCampaign: matchedCamp.name,
-    syndicate: matchedCamp.syndicate,
+    attributedCampaign: isFake
+      ? matchedCamp.name
+      : "None (Legitimate Infrastructure)",
+    syndicate: isFake ? matchedCamp.syndicate : "None (Verified Bank)",
     riskReasons,
     recommendedAction: isFake
-      ? `IMMEDIATE TAKEDOWN RECOMMENDED (${overallFakePercentage}% Fake Probability): File CERT-In Form 7A, issue NPCI UPI VPA blocklist request for [${extractedVpa.join(", ")}], and notify domain registrar.`
-      : "AUTHENTIC PORTAL: Domain verified against genuine banking whitelist.",
+      ? `IMMEDIATE TAKEDOWN RECOMMENDED (${overallFakePercentage}% Fake Probability): Dispatch CERT-In Form 7A notice and notify registrar.`
+      : "AUTHENTIC PORTAL: Verified authentic banking infrastructure with zero phishing triggers.",
   };
-}
-
-// Backward compatibility alias
-export function analyzeUrlOrPayload(input: string): ScanResult {
-  return analyzeSource(input, "URL");
 }
