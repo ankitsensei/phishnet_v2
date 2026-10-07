@@ -1,5 +1,59 @@
 [
   {
+    "id": "thr-0851",
+    "url": "https://[Screenshot Image]: WhatsApp Image 2026-09-13 at 15.59.11.jpeg",
+    "domain": "[Screenshot Image]: WhatsApp Image 2026-09-13 at 15.59.11.jpeg",
+    "targetBrand": "SBI YONO",
+    "threatType": "FAKE_UPI_PORTAL",
+    "discoverySource": "USER_REPORT",
+    "discoveryTimestamp": "2026-10-07 18:20:10",
+    "severity": "HIGH",
+    "status": "CONFIRMED_PHISH",
+    "similarityScore": 83.1,
+    "pHashDistance": 2,
+    "structuralSSIM": 0.987,
+    "domEditDistance": 0.03,
+    "logoConfidence": 95.4,
+    "ip": "185.220.101.44",
+    "asn": "AS44050",
+    "asnName": "Petersburg Offshore Networks",
+    "country": "Seychelles (RU Host)",
+    "countryCode": "SC",
+    "registrar": "NameSilo LLC",
+    "sslIssuer": "Let's Encrypt Authority E6",
+    "sslSerial": "04a2991823ab",
+    "dnsNameservers": [],
+    "extractedUPI_VPA": [
+      "sbiyono.instantkyc@paytm",
+      "refund.sbiyono@ybl"
+    ],
+    "extractedPhoneNumbers": [
+      "+91 98765 43210"
+    ],
+    "campaignId": "camp-yono-01",
+    "campaignName": "Paytm Instant Cashback Ring",
+    "threatActorSyndicate": "GoldenQR Cyber Group",
+    "evasionTactics": {
+      "antiBotGating": true,
+      "canvasFingerprinting": true,
+      "geoFencingIndiaOnly": true,
+      "userAgentFiltering": true,
+      "devtoolsBlocker": true,
+      "dynamicDomRedirection": true,
+      "fakeSslBadge": true
+    },
+    "screenshotUrl": "/assets/evidence/sbi_clone.webp",
+    "genuineReferenceUrl": "https://onlinesbi.sbi / sbiyono.sbi",
+    "evidenceHash": "85277543cb4a6f5674fc07a8c8f34cc694c3c1e47fe2ca1442439365dc33ee33",
+    "timeline": [
+      {
+        "time": "23:50:10",
+        "event": "Source analyzed: detected 83.1% Fake probability",
+        "actor": "Autonomous Sentinel Engine"
+      }
+    ]
+  },
+  {
     "id": "thr-1619",
     "url": "https://[Screenshot]: WhatsApp Image 2026-09-13 at 15.59.11.jpeg - Ready for visual similarity matching.",
     "domain": "[Screenshot]: WhatsApp Image 2026-09-13 at 15.59.11.jpeg - Ready for visual similarity matching.",
