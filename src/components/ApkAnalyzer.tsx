@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-import { Smartphone, Shield, FileCode, AlertCircle, Upload, CheckCircle2, ShieldAlert, Terminal, RefreshCw } from 'lucide-react';
-import { apiClient } from '../services/api';
-import { ApkAnalysisResult } from '../../server/services/apkInspector';
+import React, { useState, useRef } from 'react';
+import { Smartphone, Shield, FileCode, AlertCircle, Upload, CheckCircle2, ShieldAlert, Terminal, RefreshCw, Sparkles, Bug, KeyRound, FileUp } from 'lucide-react';
+import { apiClient, ApkAnalysisResult } from '../services/api';
 
 const SAMPLE_APKS = [
   {
@@ -25,6 +24,7 @@ export const ApkAnalyzer: React.FC = () => {
   const [currentAnalysis, setCurrentAnalysis] = useState<ApkAnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'PERMISSIONS' | 'MANIFEST' | 'C2_TELEMETRY' | 'DISASSEMBLY'>('PERMISSIONS');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     handleAnalyzeSample(SAMPLE_APKS[0]);
@@ -54,29 +54,37 @@ export const ApkAnalyzer: React.FC = () => {
       console.error('File upload error:', err);
     } finally {
       setIsLoading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="p-5 rounded-lg bg-[#09090b] border border-[#222226] flex flex-wrap items-center justify-between gap-4">
+      <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-base font-semibold text-white tracking-tight flex items-center space-x-2">
-            <Smartphone className="w-4 h-4 text-white" />
-            <span>Android Banking Trojan & Malicious APK Lab</span>
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center space-x-2">
+            <span>Fake Android Banking App Inspector (APK Lab)</span>
           </h2>
-          <p className="text-xs text-[#888892] mt-0.5">
-            Static binary decompilation, dangerous SMS/Accessibility permissions, overlay attack detection, and C2 exfiltration extraction.
+          <p className="text-xs text-slate-500 mt-1">
+            Static binary decompilation, dangerous permission auditing (SMS OTP theft & overlay attacks), and C2 server extraction.
           </p>
         </div>
 
         {/* Upload & Sample Selector */}
-        <div className="flex flex-wrap items-center gap-2 font-mono">
-          <label className="cursor-pointer px-3 py-1.5 rounded-md bg-white text-black hover:bg-[#e4e4e7] text-xs font-semibold flex items-center space-x-1.5 transition-colors shadow-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="cursor-pointer px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center space-x-1.5 transition-colors shadow-xs">
             <Upload className="w-3.5 h-3.5" />
-            <span>Upload Real APK / ZIP</span>
-            <input type="file" accept=".apk,.zip,.dex,.xml" onChange={handleFileUpload} className="hidden" />
+            <span>Upload APK File</span>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".apk,.zip,.dex,.xml"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
           </label>
 
           <select
@@ -84,7 +92,7 @@ export const ApkAnalyzer: React.FC = () => {
               const s = SAMPLE_APKS.find(item => item.name === e.target.value);
               if (s) handleAnalyzeSample(s);
             }}
-            className="bg-[#121214] border border-[#222226] text-xs rounded-md px-3 py-1.5 text-white focus:outline-none focus:border-white"
+            className="bg-slate-50 border border-slate-300 text-xs rounded-lg px-3 py-1.5 text-slate-900 focus:outline-none focus:border-indigo-500 font-mono shadow-xs"
           >
             {SAMPLE_APKS.map(s => (
               <option key={s.name} value={s.name}>
@@ -96,79 +104,82 @@ export const ApkAnalyzer: React.FC = () => {
       </div>
 
       {isLoading && (
-        <div className="p-8 rounded-lg bg-[#09090b] border border-[#222226] text-center font-mono text-xs text-[#888892] flex items-center justify-center space-x-2">
-          <RefreshCw className="w-4 h-4 animate-spin text-white" />
-          <span>Decompiling Android APK binary and inspecting manifest permissions...</span>
+        <div className="p-10 rounded-xl bg-white border border-slate-200 text-center text-xs text-slate-600 flex items-center justify-center space-x-3 shadow-sm">
+          <RefreshCw className="w-5 h-5 animate-spin text-indigo-600" />
+          <span>Decompiling Android APK binary and auditing manifest permissions...</span>
         </div>
       )}
 
       {currentAnalysis && !isLoading && (
-        <div className="space-y-4 animate-in fade-in duration-150">
+        <div className="space-y-4">
           {/* Metric Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
-            <div className="p-4 rounded-lg bg-[#09090b] border border-[#222226]">
-              <div className="text-[11px] uppercase text-[#71717a]">Trojan Risk Score</div>
-              <div className="text-2xl font-bold text-white mt-1">{currentAnalysis.riskScore}%</div>
-              <div className="text-[10px] text-white mt-0.5 font-bold">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-1">
+              <div className="text-xs text-slate-500 font-medium">Trojan Risk Score</div>
+              <div className="text-2xl font-bold text-rose-600">{currentAnalysis.riskScore}%</div>
+              <div className="text-[11px] text-rose-700 font-semibold">
                 {currentAnalysis.isTrojan ? 'CRITICAL TROJAN' : 'SUSPICIOUS APP'}
               </div>
             </div>
 
-            <div className="p-4 rounded-lg bg-[#09090b] border border-[#222226]">
-              <div className="text-[11px] uppercase text-[#71717a]">Target Spoofed</div>
-              <div className="text-lg font-bold text-white mt-1">{currentAnalysis.targetedBrand}</div>
-              <div className="text-[10px] text-[#71717a] truncate mt-0.5">{currentAnalysis.packageName}</div>
+            <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-1">
+              <div className="text-xs text-slate-500 font-medium">Spoofed Brand</div>
+              <div className="text-xl font-bold text-slate-900">{currentAnalysis.targetedBrand}</div>
+              <div className="text-[11px] text-slate-500 font-mono truncate">{currentAnalysis.packageName}</div>
             </div>
 
-            <div className="p-4 rounded-lg bg-[#09090b] border border-[#222226]">
-              <div className="text-[11px] uppercase text-[#71717a]">Dangerous Perms</div>
-              <div className="text-2xl font-bold text-white mt-1">{currentAnalysis.dangerousPermissions.length}</div>
-              <div className="text-[10px] text-[#71717a] mt-0.5">SMS & Keylogging abuse</div>
+            <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-1">
+              <div className="text-xs text-slate-500 font-medium">Dangerous Permissions</div>
+              <div className="text-2xl font-bold text-amber-600">{currentAnalysis.dangerousPermissions.length}</div>
+              <div className="text-[11px] text-amber-700 font-medium">SMS OTP interception</div>
             </div>
 
-            <div className="p-4 rounded-lg bg-[#09090b] border border-[#222226]">
-              <div className="text-[11px] uppercase text-[#71717a]">C2 & Bots</div>
-              <div className="text-2xl font-bold text-white mt-1">{currentAnalysis.c2Endpoints.length + currentAnalysis.telegramBotHooks.length}</div>
-              <div className="text-[10px] text-[#71717a] mt-0.5">Exfiltration channels</div>
+            <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-1">
+              <div className="text-xs text-slate-500 font-medium">C2 Exfil Endpoints</div>
+              <div className="text-2xl font-bold text-indigo-600">{currentAnalysis.c2Endpoints.length + currentAnalysis.telegramBotHooks.length}</div>
+              <div className="text-[11px] text-indigo-700 font-medium">Remote command channels</div>
             </div>
           </div>
 
           {/* Main Tabs Container */}
-          <div className="p-5 rounded-lg bg-[#09090b] border border-[#222226] space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#222226] pb-3">
-              <div className="text-xs font-mono font-bold text-white uppercase">
-                Static Forensics: {currentAnalysis.packageName} ({currentAnalysis.fileName})
+          <div className="p-5 rounded-xl bg-white border border-slate-200 space-y-4 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="text-xs font-semibold text-slate-900 flex items-center space-x-2">
+                <Bug className="w-4 h-4 text-indigo-600" />
+                <span>Target:</span>
+                <span className="font-mono text-indigo-600 font-bold">{currentAnalysis.packageName}</span>
+                <span className="text-slate-500">({currentAnalysis.fileName})</span>
               </div>
 
-              <div className="flex items-center space-x-1 bg-[#121214] p-1 rounded-md border border-[#222226] text-xs font-mono">
+              <div className="flex items-center space-x-1 bg-slate-100 p-0.5 rounded-lg text-xs font-medium">
                 <button
                   onClick={() => setActiveTab('PERMISSIONS')}
-                  className={`px-3 py-1 rounded font-medium transition-colors ${
-                    activeTab === 'PERMISSIONS' ? 'bg-white text-black font-semibold' : 'text-[#888892] hover:text-white'
+                  className={`px-3 py-1.5 rounded-md transition-all ${
+                    activeTab === 'PERMISSIONS' ? 'bg-white text-slate-900 font-semibold shadow-xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   Permissions ({currentAnalysis.dangerousPermissions.length})
                 </button>
                 <button
                   onClick={() => setActiveTab('MANIFEST')}
-                  className={`px-3 py-1 rounded font-medium transition-colors ${
-                    activeTab === 'MANIFEST' ? 'bg-white text-black font-semibold' : 'text-[#888892] hover:text-white'
+                  className={`px-3 py-1.5 rounded-md transition-all ${
+                    activeTab === 'MANIFEST' ? 'bg-white text-slate-900 font-semibold shadow-xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   AndroidManifest.xml
                 </button>
                 <button
                   onClick={() => setActiveTab('C2_TELEMETRY')}
-                  className={`px-3 py-1 rounded font-medium transition-colors ${
-                    activeTab === 'C2_TELEMETRY' ? 'bg-white text-black font-semibold' : 'text-[#888892] hover:text-white'
+                  className={`px-3 py-1.5 rounded-md transition-all ${
+                    activeTab === 'C2_TELEMETRY' ? 'bg-white text-slate-900 font-semibold shadow-xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   C2 Gateways & Bots
                 </button>
                 <button
                   onClick={() => setActiveTab('DISASSEMBLY')}
-                  className={`px-3 py-1 rounded font-medium transition-colors ${
-                    activeTab === 'DISASSEMBLY' ? 'bg-white text-black font-semibold' : 'text-[#888892] hover:text-white'
+                  className={`px-3 py-1.5 rounded-md transition-all ${
+                    activeTab === 'DISASSEMBLY' ? 'bg-white text-slate-900 font-semibold shadow-xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   Smali Tokens
@@ -178,25 +189,30 @@ export const ApkAnalyzer: React.FC = () => {
 
             {/* Permissions Tab */}
             {activeTab === 'PERMISSIONS' && (
-              <div className="space-y-3 font-mono text-xs">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+              <div className="space-y-4 text-xs">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {currentAnalysis.dangerousPermissions.map((item, idx) => (
-                    <div key={idx} className="p-3 rounded bg-[#121214] border border-[#222226] space-y-1">
+                    <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-white break-all">{item.permission}</span>
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-white text-black font-bold">
+                        <span className="font-mono font-bold text-slate-900 break-all">{item.permission}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                          item.risk === 'CRITICAL' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
+                        }`}>
                           {item.risk}
                         </span>
                       </div>
-                      <div className="text-[11px] text-[#888892]">{item.description}</div>
+                      <p className="text-xs text-slate-600">{item.description}</p>
                     </div>
                   ))}
                 </div>
 
-                <div className="p-3.5 rounded bg-[#000000] border border-[#222226] space-y-1.5 text-xs">
-                  <div className="text-white font-bold uppercase text-[11px]">Malicious UPI Intent Hooks Detected:</div>
+                <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1.5">
+                  <div className="text-slate-900 font-bold text-xs flex items-center space-x-1.5">
+                    <KeyRound className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Malicious UPI Intent Scheme Hijacks Detected:</span>
+                  </div>
                   {currentAnalysis.intentFilters.map((intent, idx) => (
-                    <div key={idx} className="p-1.5 rounded bg-[#121214] border border-[#222226] text-[#d4d4d8]">
+                    <div key={idx} className="p-2 rounded bg-white border border-slate-200 font-mono text-xs text-indigo-700 font-semibold">
                       {intent}
                     </div>
                   ))}
@@ -206,42 +222,42 @@ export const ApkAnalyzer: React.FC = () => {
 
             {/* Android Manifest Tab */}
             {activeTab === 'MANIFEST' && (
-              <pre className="p-4 rounded bg-[#000000] border border-[#222226] font-mono text-xs text-[#d4d4d8] overflow-x-auto leading-relaxed max-h-96">
+              <pre className="p-4 rounded-lg bg-slate-50 border border-slate-200 font-mono text-xs text-slate-800 overflow-x-auto leading-relaxed max-h-96">
                 {currentAnalysis.decompiledManifestXml}
               </pre>
             )}
 
             {/* C2 Telemetry Tab */}
             {activeTab === 'C2_TELEMETRY' && (
-              <div className="space-y-3 font-mono text-xs">
-                <div className="p-3.5 rounded bg-[#000000] border border-[#222226] space-y-2">
-                  <div className="text-white font-bold uppercase text-[11px]">Hardcoded C2 Data Exfiltration Endpoints:</div>
+              <div className="space-y-3 text-xs font-mono">
+                <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+                  <div className="text-rose-700 font-bold text-xs uppercase">Hardcoded C2 Data Exfiltration Endpoints:</div>
                   {currentAnalysis.c2Endpoints.map((ep, idx) => (
-                    <div key={idx} className="p-2 rounded bg-[#121214] border border-[#222226] text-white break-all">
+                    <div key={idx} className="p-2 rounded bg-white border border-slate-200 text-rose-700 break-all font-semibold">
                       POST {ep}
                     </div>
                   ))}
                 </div>
 
-                <div className="p-3.5 rounded bg-[#000000] border border-[#222226] space-y-2">
-                  <div className="text-white font-bold uppercase text-[11px]">Telegram Bot Exfiltration Hooks:</div>
+                <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+                  <div className="text-indigo-700 font-bold text-xs uppercase">Telegram Bot Exfiltration Hooks:</div>
                   {currentAnalysis.telegramBotHooks.map((bot, idx) => (
-                    <div key={idx} className="p-2 rounded bg-[#121214] border border-[#222226] text-white break-all">
+                    <div key={idx} className="p-2 rounded bg-white border border-slate-200 text-indigo-700 break-all font-semibold">
                       {bot}
                     </div>
                   ))}
                 </div>
 
-                <div className="p-3.5 rounded bg-[#000000] border border-[#222226] space-y-1">
-                  <div className="text-[#71717a] text-[10px] uppercase">SHA-256 File Hash:</div>
-                  <div className="text-white text-[10px] break-all">{currentAnalysis.sha256}</div>
+                <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
+                  <div className="text-slate-600 text-xs font-bold uppercase">SHA-256 File Hash:</div>
+                  <div className="text-slate-800 text-xs break-all">{currentAnalysis.sha256}</div>
                 </div>
               </div>
             )}
 
             {/* Disassembly / Smali Tokens */}
             {activeTab === 'DISASSEMBLY' && (
-              <pre className="p-4 rounded bg-[#000000] border border-[#222226] font-mono text-xs text-[#d4d4d8] overflow-x-auto leading-relaxed">
+              <pre className="p-4 rounded-lg bg-slate-50 border border-slate-200 font-mono text-xs text-slate-800 overflow-x-auto leading-relaxed">
                 {currentAnalysis.disassemblyStringsSample.join('\n')}
               </pre>
             )}
@@ -251,3 +267,4 @@ export const ApkAnalyzer: React.FC = () => {
     </div>
   );
 };
+

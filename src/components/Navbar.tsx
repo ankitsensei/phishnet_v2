@@ -1,7 +1,7 @@
 import React from 'react';
-import { Shield, Search, List, Network, FileText, BarChart2, Smartphone, Radio } from 'lucide-react';
+import { Shield, Search, List, Network, FileText, BarChart2, Smartphone, Radio, Eye } from 'lucide-react';
 
-export type TabType = 'detector' | 'apk' | 'ctstream' | 'threats' | 'graph' | 'takedowns' | 'benchmarks';
+export type TabType = 'detector' | 'similarity' | 'apk' | 'ctstream' | 'threats' | 'graph' | 'takedowns' | 'benchmarks';
 
 interface NavbarProps {
   activeTab: TabType;
@@ -15,30 +15,38 @@ export const Navbar: React.FC<NavbarProps> = ({
   threatCount
 }) => {
   const tabs = [
-    { id: 'detector', label: 'Scanner', icon: Search },
+    { id: 'detector', label: 'Threat Scanner', icon: Search },
+    { id: 'similarity', label: 'Visual Studio', icon: Eye },
     { id: 'apk', label: 'APK Lab', icon: Smartphone },
     { id: 'ctstream', label: 'CT Stream', icon: Radio },
     { id: 'threats', label: 'Threat Feed', icon: List, badge: `${threatCount}` },
     { id: 'graph', label: 'Campaign Graph', icon: Network },
     { id: 'takedowns', label: 'Takedowns', icon: FileText },
-    { id: 'benchmarks', label: 'Metrics', icon: BarChart2 },
+    { id: 'benchmarks', label: 'ML Metrics', icon: BarChart2 },
   ] as const;
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[#222226] bg-[#000000]/95 backdrop-blur-md">
+    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-14">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div
-            className="flex items-center space-x-2.5 cursor-pointer select-none"
+            className="flex items-center space-x-3 cursor-pointer select-none"
             onClick={() => setActiveTab('detector')}
           >
-            <div className="w-7 h-7 rounded bg-white text-black flex items-center justify-center font-bold">
-              <Shield className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center shadow-sm">
+              <Shield className="w-5 h-5 text-white" />
             </div>
             <div>
-              <span className="font-semibold text-sm text-white tracking-tight">PhishNet V2</span>
-              <span className="text-[11px] text-[#71717a] ml-1.5 font-mono">Full-Stack Shield</span>
+              <div className="flex items-center space-x-1.5">
+                <span className="font-bold text-base text-slate-900 tracking-tight">
+                  PhishNet
+                </span>
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-100 font-mono">
+                  v2.0
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">Fake UPI & App Detection Engine</p>
             </div>
           </div>
 
@@ -51,17 +59,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as TabType)}
-                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all ${
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
                     isActive
-                      ? 'bg-white text-black font-semibold shadow-sm'
-                      : 'text-[#888892] hover:text-white hover:bg-[#141416]'
+                      ? 'bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-black' : 'text-[#888892]'}`} />
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-indigo-600' : 'text-slate-500'}`} />
                   <span>{tab.label}</span>
                   {'badge' in tab && tab.badge && (
-                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
-                      isActive ? 'bg-[#222226] text-white' : 'bg-[#18181b] text-[#71717a]'
+                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-semibold ${
+                      isActive ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-700'
                     }`}>
                       {tab.badge}
                     </span>
@@ -75,3 +83,4 @@ export const Navbar: React.FC<NavbarProps> = ({
     </header>
   );
 };
+

@@ -2,65 +2,68 @@
 
 @layer base {
   :root {
-    --bg-primary: #000000;
-    --bg-secondary: #09090b;
-    --bg-card: #121214;
-    --bg-card-hover: #18181b;
-    --border-subtle: #27272a;
-    --border-active: #3f3f46;
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f1f5f9;
+    --border-subtle: #e2e8f0;
+    --border-active: #6366f1;
+    --text-primary: #0f172a;
+    --text-muted: #64748b;
   }
 
   body {
-    background-color: #000000;
-    color: #f4f4f5;
-    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
-    letter-spacing: -0.01em;
+    background-color: #f8fafc;
+    color: #0f172a;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    letter-spacing: -0.011em;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
-/* Minimalist Clean Monochrome Cards */
-.mono-card {
-  background-color: #09090b;
-  border: 1px solid #27272a;
-  border-radius: 8px;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+/* Human-designed Minimal Card System */
+.clean-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  transition: all 0.15s ease-in-out;
 }
 
-.mono-card:hover {
-  border-color: #52525b;
+.clean-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
 }
 
-.mono-card-active {
-  border-color: #ffffff;
+.clean-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
 }
 
-/* Custom Scrollbars */
+/* Minimal Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #000000;
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
-  border-radius: 2px;
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
-}
-
-/* Subtle grid */
-.bg-grid-mono {
-  background-size: 24px 24px;
-  background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background: #94a3b8;
 }
 
 code, pre {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
+

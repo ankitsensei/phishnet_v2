@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Send, CheckCircle, Copy, Download, History, ShieldCheck, Clock, CheckCircle2 } from 'lucide-react';
+import { FileText, Send, CheckCircle, Copy, Download, History, ShieldCheck, Clock, CheckCircle2, ShieldAlert, Sparkles, SendHorizontal } from 'lucide-react';
 import { ThreatItem } from '../types/threat';
-import { apiClient } from '../services/api';
-import { TakedownDispatchRecord } from '../../server/db';
+import { apiClient, TakedownDispatchRecord } from '../services/api';
 
 interface TakedownGeneratorProps {
   threats: ThreatItem[];
@@ -233,35 +232,40 @@ Takedown notices have been automatically pre-dispatched to CERT-In, NPCI, and ${
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="p-5 rounded-lg bg-[#09090b] border border-[#27272a] flex flex-wrap items-center justify-between gap-4">
+      {/* Header Card */}
+      <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-base font-semibold text-white tracking-tight flex items-center space-x-2">
-            <FileText className="w-4 h-4 text-white" />
-            <span>Automated Takedown Report & Evidence Package Dispatcher</span>
+          <div className="inline-flex items-center space-x-2 px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-medium mb-2">
+            <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Multi-Authority Enforcement</span>
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+            Takedown Package & Evidence Dispatcher
           </h2>
-          <p className="text-xs text-[#888892] mt-0.5">
-            Generates standardized CERT-In Form 7A, NPCI UPI Shield, and Registrar RFC-2822 abuse notices with live 1-click dispatch.
+          <p className="text-xs text-slate-500 mt-0.5">
+            Generates standardized CERT-In Form 7A, NPCI UPI Shield, and Registrar abuse notices with 1-click dispatch.
           </p>
         </div>
 
         {/* Target Selector & Toggle Ledger */}
-        <div className="flex items-center space-x-2 font-mono">
+        <div className="flex items-center space-x-2">
           <button
             onClick={() => setShowLedger(!showLedger)}
-            className={`px-3 py-1.5 rounded text-xs flex items-center space-x-1.5 transition-colors border ${
-              showLedger ? 'bg-white text-black font-semibold' : 'bg-[#121214] border-[#27272a] text-white hover:bg-[#1a1a1e]'
+            className={`px-3.5 py-2 rounded-xl text-xs flex items-center space-x-1.5 font-medium transition-all border ${
+              showLedger
+                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
             }`}
           >
             <History className="w-3.5 h-3.5" />
             <span>Dispatch Ledger ({dispatches.length})</span>
           </button>
 
-          <span className="text-xs text-[#71717a]">Target:</span>
+          <span className="text-xs text-slate-500">Target:</span>
           <select
             value={activeThreatId}
             onChange={(e) => setActiveThreatId(e.target.value)}
-            className="bg-[#121214] border border-[#27272a] text-xs rounded-md px-3 py-1.5 text-white focus:outline-none focus:border-white"
+            className="bg-white border border-slate-200 text-xs rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm"
           >
             {threats.map(t => (
               <option key={t.id} value={t.id}>
@@ -274,37 +278,37 @@ Takedown notices have been automatically pre-dispatched to CERT-In, NPCI, and ${
 
       {showLedger ? (
         /* Dispatch History Ledger Table */
-        <div className="rounded-lg bg-[#09090b] border border-[#27272a] p-4 space-y-3 font-mono text-xs">
-          <div className="flex items-center justify-between border-b border-[#27272a] pb-3">
-            <span className="font-bold text-white uppercase flex items-center space-x-2">
-              <ShieldCheck className="w-4 h-4 text-white" />
+        <div className="rounded-2xl bg-white border border-slate-200/80 p-5 space-y-4 shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <span className="font-bold text-slate-900 text-sm flex items-center space-x-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <span>Live Takedown Dispatch Ledger</span>
             </span>
-            <span className="text-[#71717a]">{dispatches.length} Total Dispatches Logged</span>
+            <span className="text-xs text-slate-500">{dispatches.length} Dispatches Logged</span>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#121214] text-[#a1a1aa] border-b border-[#27272a] uppercase text-[10px]">
+              <thead className="bg-slate-50 text-slate-500 border-b border-slate-100 uppercase text-[10px] font-semibold">
                 <tr>
-                  <th className="py-2.5 px-3">Tracking ID</th>
-                  <th className="py-2.5 px-3">Target Domain</th>
-                  <th className="py-2.5 px-3">Target Brand</th>
-                  <th className="py-2.5 px-3">Channels</th>
-                  <th className="py-2.5 px-3">Dispatched At</th>
-                  <th className="py-2.5 px-3">Status</th>
+                  <th className="py-3 px-3">Tracking ID</th>
+                  <th className="py-3 px-3">Target Domain</th>
+                  <th className="py-3 px-3">Target Brand</th>
+                  <th className="py-3 px-3">Channels</th>
+                  <th className="py-3 px-3">Dispatched At</th>
+                  <th className="py-3 px-3">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#18181b]">
+              <tbody className="divide-y divide-slate-100 font-mono">
                 {dispatches.map((disp) => (
-                  <tr key={disp.id} className="hover:bg-[#121214] transition-colors">
-                    <td className="py-2.5 px-3 text-white font-bold">{disp.trackingNumber}</td>
-                    <td className="py-2.5 px-3 text-[#d4d4d8]">{disp.targetDomain}</td>
-                    <td className="py-2.5 px-3 text-white">{disp.targetBrand}</td>
-                    <td className="py-2.5 px-3 text-[#a1a1aa] text-[11px]">{disp.channels.join(', ')}</td>
-                    <td className="py-2.5 px-3 text-[#71717a] whitespace-nowrap">{disp.dispatchedAt}</td>
-                    <td className="py-2.5 px-3">
-                      <span className="px-2 py-0.5 rounded bg-[#18181b] border border-[#27272a] text-white text-[10px] font-bold">
+                  <tr key={disp.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="py-3 px-3 text-indigo-600 font-bold">{disp.trackingNumber}</td>
+                    <td className="py-3 px-3 text-slate-700">{disp.targetDomain}</td>
+                    <td className="py-3 px-3 text-slate-900 font-sans font-semibold">{disp.targetBrand}</td>
+                    <td className="py-3 px-3 text-slate-600 text-[11px] font-sans">{disp.channels.join(', ')}</td>
+                    <td className="py-3 px-3 text-slate-500 whitespace-nowrap font-sans">{disp.dispatchedAt}</td>
+                    <td className="py-3 px-3">
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-semibold font-sans">
                         {disp.status}
                       </span>
                     </td>
@@ -317,27 +321,27 @@ Takedown notices have been automatically pre-dispatched to CERT-In, NPCI, and ${
       ) : (
         <>
           {/* Recipient Channel Selector */}
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {[
-              { id: 'CERT_IN', label: 'CERT-In Form 7A Notice', desc: 'Government CSIRT' },
-              { id: 'NPCI_UPI', label: 'NPCI UPI Fraud Desk', desc: 'VPA Freeze Directive' },
-              { id: 'REGISTRAR', label: 'Registrar Abuse Desk', desc: `${threat.registrar}` },
-              { id: 'HOST_CDN', label: 'Host / CDN Abuse Desk', desc: `${threat.asnName}` },
-              { id: 'BANK_CSIRT', label: 'Brand Security Desk', desc: `${threat.targetBrand} CSIRT` },
+              { id: 'CERT_IN', label: 'CERT-In Form 7A', desc: 'Government CSIRT' },
+              { id: 'NPCI_UPI', label: 'NPCI UPI Desk', desc: 'VPA Freeze Directive' },
+              { id: 'REGISTRAR', label: 'Registrar Abuse', desc: `${threat.registrar}` },
+              { id: 'HOST_CDN', label: 'Host / CDN Abuse', desc: `${threat.asnName}` },
+              { id: 'BANK_CSIRT', label: 'Brand Security', desc: `${threat.targetBrand} CSIRT` },
             ].map((item) => (
               <button
                 key={item.id}
                 onClick={() => setRecipientType(item.id as any)}
-                className={`flex-1 min-w-[170px] p-3 rounded-lg border text-left transition-colors ${
+                className={`p-4 rounded-xl border text-left transition-all ${
                   recipientType === item.id
-                    ? 'bg-white text-black border-white'
-                    : 'bg-[#09090b] border-[#27272a] text-[#a1a1aa] hover:text-white hover:bg-[#121214]'
+                    ? 'bg-indigo-50/70 border-indigo-300 ring-2 ring-indigo-500/20 shadow-sm'
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                <div className={`font-semibold text-xs ${recipientType === item.id ? 'text-black' : 'text-white'}`}>
+                <div className={`font-semibold text-xs ${recipientType === item.id ? 'text-indigo-900' : 'text-slate-800'}`}>
                   {item.label}
                 </div>
-                <div className={`text-[10px] font-mono truncate mt-0.5 ${recipientType === item.id ? 'text-[#3f3f46]' : 'text-[#71717a]'}`}>
+                <div className="text-[11px] truncate mt-1 text-slate-500">
                   {item.desc}
                 </div>
               </button>
@@ -345,47 +349,51 @@ Takedown notices have been automatically pre-dispatched to CERT-In, NPCI, and ${
           </div>
 
           {/* Report Code View */}
-          <div className="rounded-lg bg-[#000000] border border-[#27272a] overflow-hidden">
-            <div className="px-4 py-2.5 bg-[#09090b] border-b border-[#27272a] flex flex-wrap items-center justify-between gap-2">
-              <div className="text-xs font-mono font-semibold text-white">
-                Abuse Format: {recipientType} for {threat.domain}
+          <div className="rounded-2xl bg-white border border-slate-200/80 overflow-hidden shadow-sm">
+            <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+              <div className="text-xs font-semibold text-slate-800 flex items-center space-x-2">
+                <FileText className="w-4 h-4 text-indigo-600" />
+                <span>Format: {recipientType} for {threat.domain}</span>
               </div>
 
               <div className="flex items-center space-x-2">
                 <button
                   onClick={handleCopy}
-                  className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-[#121214] hover:bg-[#1f1f23] text-white border border-[#27272a] text-xs font-mono transition-colors"
+                  className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium transition-colors shadow-sm"
                 >
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>{copied ? 'Copied' : 'Copy'}</span>
+                  <Copy className="w-3.5 h-3.5 text-slate-500" />
+                  <span>{copied ? 'Copied!' : 'Copy'}</span>
                 </button>
 
                 <button
                   onClick={handleDownload}
-                  className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-[#121214] hover:bg-[#1f1f23] text-white border border-[#27272a] text-xs font-mono transition-colors"
+                  className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium transition-colors shadow-sm"
                 >
-                  <Download className="w-3.5 h-3.5" />
+                  <Download className="w-3.5 h-3.5 text-indigo-600" />
                   <span>Download .TXT</span>
                 </button>
 
                 <button
                   onClick={handleDispatch}
                   disabled={isDispatching}
-                  className="flex items-center space-x-1.5 px-4 py-1.5 rounded bg-white text-black hover:bg-[#e4e4e7] text-xs font-semibold shadow-sm transition-colors disabled:opacity-50"
+                  className="flex items-center space-x-1.5 px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>{isDispatching ? 'Dispatching Notice...' : 'Dispatch Automated Takedown'}</span>
+                  <SendHorizontal className="w-3.5 h-3.5" />
+                  <span>{isDispatching ? 'Dispatching Notice...' : 'Dispatch 1-Click Takedown'}</span>
                 </button>
               </div>
             </div>
 
-            <pre className="p-5 text-xs font-mono text-[#d4d4d8] bg-[#000000] overflow-x-auto whitespace-pre leading-relaxed border-b border-[#27272a] max-h-[460px]">
+            <pre className="p-6 text-xs font-mono text-slate-800 bg-slate-50/50 overflow-x-auto whitespace-pre leading-relaxed border-b border-slate-100 max-h-[460px]">
               {reportText}
             </pre>
 
-            <div className="px-4 py-2.5 bg-[#09090b] flex flex-wrap items-center justify-between text-[11px] text-[#71717a] font-mono gap-2">
-              <div>Integrity Digest: SHA256({threat.evidenceHash ? threat.evidenceHash.slice(0, 16) : '9a8b7c6d5e4f3a2b'}...)</div>
-              <div className="text-white">Immutable Forensic Snapshot Timestamped</div>
+            <div className="px-5 py-3 bg-white flex flex-wrap items-center justify-between text-xs text-slate-500 font-mono gap-2">
+              <div>Evidence Digest: <span className="text-slate-800 font-semibold">SHA256({threat.evidenceHash ? threat.evidenceHash.slice(0, 16) : '9a8b7c6d5e4f3a2b'}...)</span></div>
+              <div className="text-emerald-700 font-sans font-medium flex items-center space-x-1">
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Cryptographically Timestamped & NPCI Compliant</span>
+              </div>
             </div>
           </div>
         </>

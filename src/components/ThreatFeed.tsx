@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ThreatItem, CampaignCluster, ThreatStatus } from '../types/threat';
-import { Shield, Clock, Search, Eye, FileText, DollarSign, Users, Download, Plus, Trash2, CheckCircle } from 'lucide-react';
+import { Shield, Clock, Search, Eye, FileText, DollarSign, Users, Download, Plus, Trash2, CheckCircle, AlertTriangle, Activity } from 'lucide-react';
 import { apiClient } from '../services/api';
 
 interface ThreatFeedProps {
@@ -134,90 +134,90 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Operations KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 font-mono">
-        <div className="p-4 rounded-lg bg-[#09090b] border border-[#27272a]">
-          <div className="flex items-center justify-between text-[11px] uppercase text-[#71717a]">
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Top KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
             <span>Active Phishing Clones</span>
-            <Shield className="w-4 h-4 text-white" />
+            <Shield className="w-4 h-4 text-rose-600" />
           </div>
-          <div className="text-3xl font-bold text-white mt-1">{activeThreatsCount}</div>
-          <div className="text-[10px] text-[#a1a1aa] mt-0.5">Live database targets</div>
+          <div className="text-2xl font-bold text-slate-900">{activeThreatsCount}</div>
+          <div className="text-[11px] text-rose-600 font-medium">Live database targets</div>
         </div>
 
-        <div className="p-4 rounded-lg bg-[#09090b] border border-[#27272a]">
-          <div className="flex items-center justify-between text-[11px] uppercase text-[#71717a]">
+        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
             <span>Takedown Dispatches</span>
-            <FileText className="w-4 h-4 text-white" />
+            <FileText className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="text-3xl font-bold text-white mt-1">{takenDownCount}</div>
-          <div className="text-[10px] text-[#a1a1aa] mt-0.5">91.4% enforcement SLA</div>
+          <div className="text-2xl font-bold text-slate-900">{takenDownCount}</div>
+          <div className="text-[11px] text-emerald-600 font-medium">91.4% enforcement rate</div>
         </div>
 
-        <div className="p-4 rounded-lg bg-[#09090b] border border-[#27272a]">
-          <div className="flex items-center justify-between text-[11px] uppercase text-[#71717a]">
+        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
             <span>Prevented Loss (Est.)</span>
-            <DollarSign className="w-4 h-4 text-white" />
+            <DollarSign className="w-4 h-4 text-indigo-600" />
           </div>
-          <div className="text-3xl font-bold text-white mt-1">₹9.18 Cr</div>
-          <div className="text-[10px] text-[#a1a1aa] mt-0.5">Across 4 syndicates</div>
+          <div className="text-2xl font-bold text-slate-900">₹9.18 Cr</div>
+          <div className="text-[11px] text-slate-500">Across 4 syndicates</div>
         </div>
 
-        <div className="p-4 rounded-lg bg-[#09090b] border border-[#27272a]">
-          <div className="flex items-center justify-between text-[11px] uppercase text-[#71717a]">
+        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
             <span>Mean Response SLA</span>
-            <Clock className="w-4 h-4 text-white" />
+            <Clock className="w-4 h-4 text-blue-600" />
           </div>
-          <div className="text-3xl font-bold text-white mt-1">18 min</div>
-          <div className="text-[10px] text-[#a1a1aa] mt-0.5">Automated dispatch SLA</div>
+          <div className="text-2xl font-bold text-slate-900">18 min</div>
+          <div className="text-[11px] text-slate-500">Automated dispatch SLA</div>
         </div>
       </div>
 
       {/* Campaign Syndicates */}
-      <div className="space-y-3 font-mono">
+      <div className="space-y-3">
         <div className="flex items-center justify-between text-xs">
-          <span className="font-bold text-white uppercase flex items-center space-x-2">
-            <Users className="w-4 h-4 text-white" />
+          <span className="font-bold text-slate-900 flex items-center space-x-2">
+            <Users className="w-4 h-4 text-indigo-600" />
             <span>Active Adversary Syndicates</span>
           </span>
-          <span className="text-[#71717a]">{campaigns.length} Clustered Threat Rings</span>
+          <span className="text-slate-500">{campaigns.length} Clustered Threat Rings</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
           {campaigns.map((camp) => (
             <div
               key={camp.id}
-              className="p-3.5 rounded-lg bg-[#09090b] border border-[#27272a] hover:border-white transition-colors space-y-2"
+              className="p-4 rounded-xl bg-white border border-slate-200 hover:border-indigo-300 transition-all space-y-2.5 shadow-xs"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="font-bold text-xs text-white truncate">{camp.name}</div>
-                  <div className="text-[10px] text-[#71717a] truncate">{camp.syndicate}</div>
+                  <div className="font-bold text-xs text-slate-900 truncate">{camp.name}</div>
+                  <div className="text-[11px] text-slate-500 truncate">{camp.syndicate}</div>
                 </div>
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#18181b] border border-[#27272a] text-white">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">
                   {camp.threatLevel}
                 </span>
               </div>
 
-              <div className="grid grid-cols-3 gap-1 text-[10px] bg-[#121214] p-2 rounded text-center">
+              <div className="grid grid-cols-3 gap-1 text-[10px] bg-slate-50 p-2 rounded-lg text-center border border-slate-100">
                 <div>
-                  <div className="text-[#71717a]">DOMAINS</div>
-                  <div className="text-white font-bold">{camp.domainsCount}</div>
+                  <div className="text-slate-400 uppercase font-medium">Domains</div>
+                  <div className="text-slate-900 font-bold">{camp.domainsCount}</div>
                 </div>
                 <div>
-                  <div className="text-[#71717a]">VPAs</div>
-                  <div className="text-white font-bold">{camp.vpasCount}</div>
+                  <div className="text-slate-400 uppercase font-medium">VPAs</div>
+                  <div className="text-indigo-600 font-bold">{camp.vpasCount}</div>
                 </div>
                 <div>
-                  <div className="text-[#71717a]">LOSS</div>
-                  <div className="text-white font-bold">{camp.financialLossEstimateINR}</div>
+                  <div className="text-slate-400 uppercase font-medium">Loss</div>
+                  <div className="text-amber-700 font-bold">{camp.financialLossEstimateINR}</div>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-1">
                 {camp.targetedBrands.map(b => (
-                  <span key={b} className="text-[9px] px-1.5 py-0.5 rounded bg-[#121214] border border-[#27272a] text-[#a1a1aa]">
+                  <span key={b} className="text-[10px] px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-medium">
                     {b}
                   </span>
                 ))}
@@ -228,24 +228,24 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
       </div>
 
       {/* Incident Queue */}
-      <div className="rounded-lg bg-[#09090b] border border-[#27272a] space-y-3 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#27272a] pb-3 font-mono text-xs">
+      <div className="rounded-xl bg-white border border-slate-200 space-y-4 p-5 shadow-xs">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3 text-xs">
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-[#71717a] absolute left-2.5 top-2.5" />
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
                 placeholder="Search domain, IP, brand, VPA..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-[#121214] border border-[#27272a] rounded pl-8 pr-3 py-1.5 text-white focus:outline-none focus:border-white w-56 sm:w-64"
+                className="bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-slate-900 focus:outline-none focus:border-indigo-500 w-56 sm:w-64"
               />
             </div>
 
             <select
               value={selectedBrand}
               onChange={(e) => setSelectedBrand(e.target.value)}
-              className="bg-[#121214] border border-[#27272a] rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-white"
+              className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:border-indigo-500"
             >
               <option value="ALL">All Brands</option>
               <option value="SBI YONO">SBI YONO</option>
@@ -260,7 +260,7 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
             <select
               value={selectedSeverity}
               onChange={(e) => setSelectedSeverity(e.target.value)}
-              className="bg-[#121214] border border-[#27272a] rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-white"
+              className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:border-indigo-500"
             >
               <option value="ALL">All Severities</option>
               <option value="CRITICAL">Critical</option>
@@ -269,29 +269,29 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
             </select>
           </div>
 
-          {/* Action Buttons: Add Target & Export */}
+          {/* Action Buttons */}
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="px-3 py-1.5 rounded bg-white text-black font-semibold hover:bg-[#e4e4e7] flex items-center space-x-1.5 transition-colors shadow-sm"
+              className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center space-x-1.5 transition-colors text-xs shadow-xs"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Ingest Target</span>
             </button>
             <button
               onClick={handleExportCsv}
-              className="px-2.5 py-1.5 rounded bg-[#18181b] border border-[#27272a] hover:bg-[#27272a] text-white flex items-center space-x-1 transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center space-x-1 transition-colors text-xs font-medium"
               title="Export CSV"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-3.5 h-3.5 text-slate-600" />
               <span>CSV</span>
             </button>
             <button
               onClick={handleExportJson}
-              className="px-2.5 py-1.5 rounded bg-[#18181b] border border-[#27272a] hover:bg-[#27272a] text-white flex items-center space-x-1 transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center space-x-1 transition-colors text-xs font-medium"
               title="Export JSON"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-3.5 h-3.5 text-slate-600" />
               <span>JSON</span>
             </button>
           </div>
@@ -299,8 +299,8 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-[#121214] text-[#a1a1aa] border-b border-[#27272a] uppercase text-[10px]">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase text-[11px] font-semibold">
               <tr>
                 <th className="py-2.5 px-3">Targeted Brand</th>
                 <th className="py-2.5 px-3">Cloned Domain / Host</th>
@@ -311,49 +311,53 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
                 <th className="py-2.5 px-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#18181b]">
+            <tbody className="divide-y divide-slate-100">
               {filteredThreats.map((threat) => (
                 <tr
                   key={threat.id}
-                  className="hover:bg-[#121214] transition-colors cursor-pointer"
+                  className="hover:bg-slate-50/80 transition-colors cursor-pointer"
                   onClick={() => onSelectThreat(threat.id)}
                 >
                   <td className="py-3 px-3 whitespace-nowrap">
-                    <span className="font-bold text-white px-2 py-0.5 rounded bg-[#18181b] border border-[#27272a] text-[11px]">
+                    <span className="font-bold text-slate-900 px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 text-xs border border-indigo-100">
                       {threat.targetBrand}
                     </span>
                   </td>
 
                   <td className="py-3 px-3">
-                    <div className="font-semibold text-white truncate max-w-[220px]">
+                    <div className="font-semibold text-slate-900 truncate max-w-[220px] font-mono text-[11px]">
                       {threat.domain}
                     </div>
-                    <div className="text-[10px] text-[#71717a] truncate max-w-[220px]">
+                    <div className="text-[11px] text-slate-500 font-mono truncate max-w-[220px]">
                       IP: {threat.ip} ({threat.countryCode})
                     </div>
                   </td>
 
                   <td className="py-3 px-3 whitespace-nowrap">
-                    <div className="text-white font-bold text-xs">
+                    <div className="text-slate-900 font-bold text-xs">
                       {(threat.structuralSSIM * 100).toFixed(1)}% SSIM
                     </div>
-                    <div className="text-[10px] text-[#71717a]">
+                    <div className="text-[11px] text-slate-500 font-mono">
                       pHash: {threat.pHashDistance} bits
                     </div>
                   </td>
 
-                  <td className="py-3 px-3">
+                  <td className="py-3 px-3 font-mono">
                     {threat.extractedUPI_VPA && threat.extractedUPI_VPA.length > 0 ? (
-                      <span className="text-[11px] text-[#d4d4d8] truncate max-w-[150px] block">
+                      <span className="text-xs text-rose-700 font-semibold truncate max-w-[150px] block">
                         {threat.extractedUPI_VPA[0]}
                       </span>
                     ) : (
-                      <span className="text-[#52525b] text-[10px]">None</span>
+                      <span className="text-slate-400 text-xs">None</span>
                     )}
                   </td>
 
                   <td className="py-3 px-3 whitespace-nowrap">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#18181b] border border-[#27272a] text-white">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      threat.severity === 'CRITICAL'
+                        ? 'bg-rose-100 text-rose-700'
+                        : 'bg-amber-100 text-amber-700'
+                    }`}>
                       {threat.severity}
                     </span>
                   </td>
@@ -366,7 +370,7 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
                         if (onUpdateStatus) onUpdateStatus(threat.id, newStat);
                         apiClient.updateThreatStatus(threat.id, newStat);
                       }}
-                      className="bg-[#000000] border border-[#27272a] text-[10px] rounded px-2 py-1 text-white focus:outline-none focus:border-white"
+                      className="bg-slate-50 border border-slate-200 text-[11px] rounded px-2 py-1 text-slate-700 focus:outline-none focus:border-indigo-500 font-medium"
                     >
                       <option value="INVESTIGATING">INVESTIGATING</option>
                       <option value="CONFIRMED_PHISH">CONFIRMED PHISH</option>
@@ -377,20 +381,20 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
                   </td>
 
                   <td className="py-3 px-3 text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end space-x-1.5" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-end space-x-1" onClick={(e) => e.stopPropagation()}>
                       <button
-                        onClick={() => onSelectThreat(threat.id)}
-                        className="p-1.5 rounded hover:bg-[#27272a] text-[#a1a1aa] hover:text-white"
-                        title="View Telemetry"
+                        onClick={() => onOpenSimilarity(threat.id)}
+                        className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors"
+                        title="Visual Alignment Studio"
                       >
-                        <Eye className="w-3.5 h-3.5" />
+                        <Eye className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => onOpenTakedowns(threat.id)}
-                        className="p-1.5 rounded hover:bg-[#27272a] text-[#a1a1aa] hover:text-white"
+                        className="p-1.5 rounded-md hover:bg-rose-50 text-rose-600 transition-colors"
                         title="Generate Takedown Notice"
                       >
-                        <FileText className="w-3.5 h-3.5" />
+                        <FileText className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -403,34 +407,37 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
 
       {/* Ingest Target Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#09090b] border border-[#27272a] rounded-xl p-5 max-w-lg w-full space-y-4 font-mono">
-            <div className="flex items-center justify-between border-b border-[#27272a] pb-3">
-              <span className="font-bold text-white text-sm">Ingest Target into Live Intelligence</span>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-[#71717a] hover:text-white">✕</button>
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-xl p-6 max-w-md w-full space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <span className="font-bold text-slate-900 text-base flex items-center space-x-2">
+                <Plus className="w-4 h-4 text-indigo-600" />
+                <span>Ingest Target URL</span>
+              </span>
+              <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-sm font-bold">✕</button>
             </div>
 
-            <div className="space-y-2 text-xs">
-              <label className="text-[#a1a1aa]">Enter URL / Domain / Source to Ingest & Scan:</label>
+            <div className="space-y-1.5 text-xs">
+              <label className="text-slate-700 font-medium">Enter Website URL or Domain:</label>
               <input
                 type="text"
                 placeholder="https://sbi-yono-kyc-reactivate.live"
                 value={newTargetInput}
                 onChange={(e) => setNewTargetInput(e.target.value)}
-                className="w-full bg-[#000000] border border-[#27272a] rounded p-2.5 text-white focus:outline-none focus:border-white"
+                className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-indigo-500"
               />
             </div>
 
             <div className="flex items-center justify-end space-x-2 pt-2">
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="px-3 py-1.5 rounded bg-[#18181b] border border-[#27272a] text-xs text-[#a1a1aa]"
+                className="px-3.5 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-600 hover:bg-slate-50 font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateCustomThreat}
-                className="px-4 py-1.5 rounded bg-white text-black font-semibold text-xs hover:bg-[#e4e4e7]"
+                className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-xs"
               >
                 Scan & Ingest
               </button>
@@ -441,3 +448,4 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
     </div>
   );
 };
+

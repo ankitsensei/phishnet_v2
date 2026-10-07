@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Network, ZoomIn, ZoomOut, RotateCcw, Filter, ChevronRight, Layers, Shield } from 'lucide-react';
+import { Network, ZoomIn, ZoomOut, RotateCcw, Layers, Share2, Info, Sparkles } from 'lucide-react';
 import { GraphNode, GraphLink, CampaignCluster } from '../types/threat';
 
 interface CampaignGraphProps {
@@ -10,15 +10,15 @@ interface CampaignGraphProps {
   onSelectNode?: (node: GraphNode) => void;
 }
 
-const TYPE_STYLES: Record<GraphNode['type'], { fill: string; stroke: string; label: string }> = {
-  CAMPAIGN: { fill: '#ffffff', stroke: '#ffffff', label: 'Threat Syndicate' },
-  DOMAIN: { fill: '#d4d4d8', stroke: '#ffffff', label: 'Cloned Domain' },
-  IP: { fill: '#71717a', stroke: '#a1a1aa', label: 'Bulletproof Host IP' },
-  ASN: { fill: '#3f3f46', stroke: '#71717a', label: 'Routing ASN' },
-  UPI_VPA: { fill: '#e4e4e7', stroke: '#ffffff', label: 'Malicious UPI VPA' },
-  PHONE: { fill: '#a1a1aa', stroke: '#e4e4e7', label: 'Mule Phone / WhatsApp' },
-  APK: { fill: '#52525b', stroke: '#d4d4d8', label: 'Banking Trojan APK' },
-  SSL_CERT: { fill: '#27272a', stroke: '#71717a', label: 'SSL Certificate' }
+const TYPE_STYLES: Record<GraphNode['type'], { fill: string; stroke: string; glow: string; label: string }> = {
+  CAMPAIGN: { fill: '#ef4444', stroke: '#dc2626', glow: 'rgba(239, 68, 68, 0.15)', label: 'Threat Syndicate' },
+  DOMAIN: { fill: '#0284c7', stroke: '#0369a1', glow: 'rgba(2, 132, 199, 0.15)', label: 'Cloned Domain' },
+  IP: { fill: '#2563eb', stroke: '#1d4ed8', glow: 'rgba(37, 99, 235, 0.15)', label: 'Bulletproof IP' },
+  ASN: { fill: '#4f46e5', stroke: '#4338ca', glow: 'rgba(79, 70, 229, 0.15)', label: 'Routing ASN' },
+  UPI_VPA: { fill: '#059669', stroke: '#047857', glow: 'rgba(5, 150, 105, 0.15)', label: 'Malicious UPI VPA' },
+  PHONE: { fill: '#d97706', stroke: '#b45309', glow: 'rgba(217, 119, 6, 0.15)', label: 'Mule Phone / WhatsApp' },
+  APK: { fill: '#ea580c', stroke: '#c2410c', glow: 'rgba(234, 88, 12, 0.15)', label: 'Trojan APK' },
+  SSL_CERT: { fill: '#7c3aed', stroke: '#6d28d9', glow: 'rgba(124, 58, 237, 0.15)', label: 'SSL Certificate' }
 };
 
 export const CampaignGraph: React.FC<CampaignGraphProps> = ({
@@ -27,6 +27,7 @@ export const CampaignGraph: React.FC<CampaignGraphProps> = ({
   campaigns,
   onSelectNode
 }) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>('ALL');
   const [selectedCampaignFilter, setSelectedCampaignFilter] = useState<string>('ALL');
@@ -46,22 +47,41 @@ export const CampaignGraph: React.FC<CampaignGraphProps> = ({
     links: []
   });
 
+  // Handle dynamic resize
   useEffect(() => {
-    const width = 900;
-    const height = 600;
+    const updateSize = () => {
+      const container = containerRef.current;
+      const canvas = canvasRef.current;
+      if (!container || !canvas) return;
+
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = Math.max(540, rect.height) * dpr;
+    };
+
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
+
+  // Initialize node layout
+  useEffect(() => {
+    const width = 800;
+    const height = 540;
     const centerX = width / 2;
     const centerY = height / 2;
 
     const initializedNodes = initialNodes.map((node, i) => {
       const angle = (i / initialNodes.length) * Math.PI * 2;
-      const radius = node.type === 'CAMPAIGN' ? 80 : 160 + (i % 3) * 60;
+      const radius = node.type === 'CAMPAIGN' ? 70 : 150 + (i % 3) * 50;
       return {
         ...node,
-        x: centerX + Math.cos(angle) * radius + (Math.random() - 0.5) * 50,
-        y: centerY + Math.sin(angle) * radius + (Math.random() - 0.5) * 50,
+        x: centerX + Math.cos(angle) * radius + (Math.random() - 0.5) * 40,
+        y: centerY + Math.sin(angle) * radius + (Math.random() - 0.5) * 40,
         vx: 0,
         vy: 0,
-        radius: node.type === 'CAMPAIGN' ? 20 : node.type === 'DOMAIN' ? 13 : 10
+        radius: node.type === 'CAMPAIGN' ? 20 : node.type === 'DOMAIN' ? 14 : 10
       };
     });
 
@@ -71,6 +91,7 @@ export const CampaignGraph: React.FC<CampaignGraphProps> = ({
     };
   }, [initialNodes, initialLinks]);
 
+  // Physics animation loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -80,18 +101,20 @@ export const CampaignGraph: React.FC<CampaignGraphProps> = ({
     let animationFrameId: number;
 
     const runPhysics = () => {
-      const { nodes, links } = graphRef.current;
-      const width = canvas.width;
-      const height = canvas.height;
+      const dpr = window.devicePixelRatio || 1;
+      const width = canvas.width / dpr;
+      const height = canvas.height / dpr;
       const centerX = width / 2;
       const centerY = height / 2;
+
+      const { nodes, links } = graphRef.current;
 
       // 1. Center attraction
       nodes.forEach(n => {
         const dx = centerX - n.x;
         const dy = centerY - n.y;
-        n.vx += dx * 0.0005;
-        n.vy += dy * 0.0005;
+        n.vx += dx * 0.0004;
+        n.vy += dy * 0.0004;
       });
 
       // 2. Repulsion
@@ -102,10 +125,10 @@ export const CampaignGraph: React.FC<CampaignGraphProps> = ({
           const dx = n2.x - n1.x;
           const dy = n2.y - n1.y;
           const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-          const minDist = n1.radius + n2.radius + 40;
+          const minDist = n1.radius + n2.radius + 35;
 
           if (dist < minDist * 2.5) {
-            const force = (minDist * 2.5 - dist) / dist * 0.08;
+            const force = (minDist * 2.5 - dist) / dist * 0.06;
             n1.vx -= dx * force;
             n1.vy -= dy * force;
             n2.vx += dx * force;
@@ -114,7 +137,7 @@ export const CampaignGraph: React.FC<CampaignGraphProps> = ({
         }
       }
 
-      // 3. Link Attraction
+      // 3. Link spring
       links.forEach(link => {
         const src = nodes.find(n => n.id === link.source);
         const tgt = nodes.find(n => n.id === link.target);
@@ -123,7 +146,7 @@ export const CampaignGraph: React.FC<CampaignGraphProps> = ({
           const dy = tgt.y - src.y;
           const dist = Math.sqrt(dx * dx + dy * dy) || 1;
           const targetDist = 90;
-          const force = (dist - targetDist) * 0.003;
+          const force = (dist - targetDist) * 0.0025;
 
           src.vx += dx * force;
           src.vy += dy * force;
@@ -142,9 +165,25 @@ export const CampaignGraph: React.FC<CampaignGraphProps> = ({
       });
 
       // Render
+      ctx.save();
+      ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, width, height);
 
-      ctx.save();
+      // Light background fill
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(0, 0, width, height);
+
+      // Subtle Grid Dots
+      ctx.fillStyle = '#e2e8f0';
+      const gridSize = 24;
+      for (let x = (offset.x % gridSize); x < width; x += gridSize) {
+        for (let y = (offset.y % gridSize); y < height; y += gridSize) {
+          ctx.beginPath();
+          ctx.arc(x, y, 1, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
       ctx.translate(offset.x, offset.y);
       ctx.scale(zoom, zoom);
 
@@ -159,17 +198,15 @@ export const CampaignGraph: React.FC<CampaignGraphProps> = ({
         ctx.beginPath();
         ctx.moveTo(src.x, src.y);
         ctx.lineTo(tgt.x, tgt.y);
-        ctx.strokeStyle = isHighlighted ? '#ffffff' : 'rgba(255, 255, 255, 0.15)';
-        ctx.lineWidth = isHighlighted ? 2 : 1;
-        ctx.setLineDash(link.relationship === 'ROUTES_THROUGH' ? [4, 4] : []);
+        ctx.strokeStyle = isHighlighted ? '#4f46e5' : '#cbd5e1';
+        ctx.lineWidth = isHighlighted ? 2.5 : 1.2;
         ctx.stroke();
-        ctx.setLineDash([]);
 
         if (isHighlighted) {
           const midX = (src.x + tgt.x) / 2;
           const midY = (src.y + tgt.y) / 2;
-          ctx.fillStyle = '#ffffff';
-          ctx.font = '9px monospace';
+          ctx.fillStyle = '#4f46e5';
+          ctx.font = 'bold 10px monospace';
           ctx.fillText(link.relationship.replace('_', ' '), midX, midY - 4);
         }
       });
@@ -181,35 +218,35 @@ export const CampaignGraph: React.FC<CampaignGraphProps> = ({
 
         const isSelected = selectedNode?.id === node.id;
         const isHovered = hoveredNode?.id === node.id;
-        const style = TYPE_STYLES[node.type] || { fill: '#71717a', stroke: '#a1a1aa', label: 'Node' };
+        const style = TYPE_STYLES[node.type] || { fill: '#3b82f6', stroke: '#60a5fa', glow: 'rgba(59, 130, 246, 0.4)', label: 'Node' };
 
-        // Outer Ring on Selection
+        // Outer Glow Ring
         if (isSelected || isHovered || node.type === 'CAMPAIGN') {
           ctx.beginPath();
           ctx.arc(node.x, node.y, node.radius + (isSelected ? 6 : 3), 0, Math.PI * 2);
-          ctx.fillStyle = isSelected ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.08)';
+          ctx.fillStyle = isSelected ? style.glow : 'rgba(99, 102, 241, 0.08)';
           ctx.fill();
         }
 
-        // Main Node
+        // Main Circle
         ctx.beginPath();
         ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
-        ctx.fillStyle = node.type === 'CAMPAIGN' ? '#ffffff' : style.fill;
+        ctx.fillStyle = style.fill;
         ctx.fill();
-        ctx.strokeStyle = isSelected ? '#ffffff' : style.stroke;
-        ctx.lineWidth = isSelected ? 2.5 : 1;
+        ctx.strokeStyle = isSelected ? '#0f172a' : style.stroke;
+        ctx.lineWidth = isSelected ? 2.5 : 1.5;
         ctx.stroke();
 
         // Label
-        ctx.fillStyle = isSelected ? '#ffffff' : '#d4d4d8';
+        ctx.fillStyle = isSelected ? '#0f172a' : '#475569';
         ctx.font = node.type === 'CAMPAIGN' ? 'bold 11px sans-serif' : '10px monospace';
         ctx.textAlign = 'center';
 
         let displayLabel = node.label;
-        if (displayLabel.length > 22 && node.type !== 'CAMPAIGN') {
-          displayLabel = displayLabel.slice(0, 19) + '...';
+        if (displayLabel.length > 20 && node.type !== 'CAMPAIGN') {
+          displayLabel = displayLabel.slice(0, 18) + '...';
         }
-        ctx.fillText(displayLabel, node.x, node.y + node.radius + 13);
+        ctx.fillText(displayLabel, node.x, node.y + node.radius + 12);
       });
 
       ctx.restore();
@@ -229,7 +266,7 @@ export const CampaignGraph: React.FC<CampaignGraphProps> = ({
 
     const clicked = graphRef.current.nodes.find(n => {
       const dist = Math.hypot(n.x - mouseX, n.y - mouseY);
-      return dist <= n.radius + 6;
+      return dist <= n.radius + 8;
     });
 
     if (clicked) {
@@ -260,7 +297,7 @@ export const CampaignGraph: React.FC<CampaignGraphProps> = ({
     } else {
       const hover = graphRef.current.nodes.find(n => {
         const dist = Math.hypot(n.x - mouseX, n.y - mouseY);
-        return dist <= n.radius + 6;
+        return dist <= n.radius + 8;
       });
       setHoveredNode(hover || null);
     }
@@ -282,25 +319,25 @@ export const CampaignGraph: React.FC<CampaignGraphProps> = ({
     : [];
 
   return (
-    <div className="flex flex-col h-full bg-[#000000] rounded-lg border border-[#27272a] overflow-hidden">
+    <div className="flex flex-col h-full bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
       {/* Header bar */}
-      <div className="flex flex-wrap items-center justify-between px-4 py-3 bg-[#09090b] border-b border-[#27272a] gap-3">
+      <div className="flex flex-wrap items-center justify-between px-5 py-3.5 bg-white border-b border-slate-200 gap-3">
         <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2 text-white font-mono text-xs font-semibold">
-            <Network className="w-4 h-4 text-white" />
+          <div className="flex items-center space-x-2 text-slate-900 text-xs font-bold">
+            <Network className="w-4 h-4 text-indigo-600" />
             <span>Adversary Infrastructure & Campaign Graph</span>
           </div>
-          <span className="text-[11px] text-[#71717a] font-mono">
+          <span className="text-xs text-slate-500 font-mono">
             {graphRef.current.nodes.length} Nodes • {graphRef.current.links.length} Relations
           </span>
         </div>
 
         {/* Filters */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 text-xs">
           <select
             value={selectedTypeFilter}
             onChange={(e) => setSelectedTypeFilter(e.target.value)}
-            className="bg-[#121214] border border-[#27272a] text-xs rounded px-2.5 py-1 text-white focus:outline-none focus:border-white font-mono"
+            className="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:border-indigo-500"
           >
             <option value="ALL">All Entity Types</option>
             <option value="CAMPAIGN">Campaigns</option>
@@ -314,7 +351,7 @@ export const CampaignGraph: React.FC<CampaignGraphProps> = ({
           <select
             value={selectedCampaignFilter}
             onChange={(e) => setSelectedCampaignFilter(e.target.value)}
-            className="bg-[#121214] border border-[#27272a] text-xs rounded px-2.5 py-1 text-white focus:outline-none focus:border-white font-mono"
+            className="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:border-indigo-500"
           >
             <option value="ALL">All Threat Syndicates</option>
             {campaigns.map(c => (
@@ -322,14 +359,14 @@ export const CampaignGraph: React.FC<CampaignGraphProps> = ({
             ))}
           </select>
 
-          <div className="flex items-center space-x-1 bg-[#121214] p-0.5 rounded border border-[#27272a]">
-            <button onClick={() => setZoom(z => Math.min(z * 1.2, 2.5))} className="p-1 hover:bg-[#27272a] rounded text-[#a1a1aa] hover:text-white" title="Zoom In">
+          <div className="flex items-center space-x-1 bg-slate-100 p-0.5 rounded-lg">
+            <button onClick={() => setZoom(z => Math.min(z * 1.2, 2.5))} className="p-1 hover:bg-slate-200 rounded text-slate-600" title="Zoom In">
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
-            <button onClick={() => setZoom(z => Math.max(z * 0.8, 0.4))} className="p-1 hover:bg-[#27272a] rounded text-[#a1a1aa] hover:text-white" title="Zoom Out">
+            <button onClick={() => setZoom(z => Math.max(z * 0.8, 0.4))} className="p-1 hover:bg-slate-200 rounded text-slate-600" title="Zoom Out">
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
-            <button onClick={() => { setZoom(1); setOffset({ x: 0, y: 0 }); }} className="p-1 hover:bg-[#27272a] rounded text-[#a1a1aa] hover:text-white" title="Reset View">
+            <button onClick={() => { setZoom(1); setOffset({ x: 0, y: 0 }); }} className="p-1 hover:bg-slate-200 rounded text-slate-600" title="Reset View">
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -337,67 +374,65 @@ export const CampaignGraph: React.FC<CampaignGraphProps> = ({
       </div>
 
       {/* Main Canvas + Inspector */}
-      <div className="relative flex-1 min-h-[560px] flex">
+      <div ref={containerRef} className="relative flex-1 min-h-[560px] flex">
         <canvas
           ref={canvasRef}
-          width={960}
-          height={600}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onWheel={handleWheel}
-          className="w-full h-full cursor-grab active:cursor-grabbing bg-grid-mono bg-[#000000]"
+          className="w-full h-full cursor-grab active:cursor-grabbing bg-slate-50"
         />
 
         {/* Legend */}
-        <div className="absolute top-4 left-4 p-3 rounded bg-[#09090b] border border-[#27272a] text-xs text-[#a1a1aa] space-y-1.5 pointer-events-none">
-          <div className="font-semibold text-white text-[11px] uppercase tracking-wider mb-2 flex items-center space-x-1">
-            <Layers className="w-3.5 h-3.5 text-white" />
-            <span>Infrastructure Graph Key</span>
+        <div className="absolute top-4 left-4 p-3.5 rounded-xl bg-white/95 border border-slate-200 text-xs text-slate-700 space-y-1.5 pointer-events-none shadow-sm backdrop-blur-xs">
+          <div className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-2 flex items-center space-x-1.5">
+            <Layers className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Infrastructure Key</span>
           </div>
           {Object.entries(TYPE_STYLES).map(([type, style]) => (
             <div key={type} className="flex items-center space-x-2">
               <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: style.fill }} />
-              <span className="text-[11px] font-mono text-[#d4d4d8]">{style.label}</span>
+              <span className="text-xs text-slate-600 font-medium">{style.label}</span>
             </div>
           ))}
         </div>
 
         {/* Node Detail Drawer */}
         {selectedNode && (
-          <div className="absolute top-4 right-4 w-80 max-h-[90%] overflow-y-auto p-4 rounded-lg bg-[#09090b] border border-white text-xs space-y-3 animate-in fade-in duration-150">
-            <div className="flex items-center justify-between border-b border-[#27272a] pb-2">
-              <div className="font-mono font-bold text-white text-xs uppercase">
+          <div className="absolute top-4 right-4 w-80 max-h-[90%] overflow-y-auto p-4 rounded-xl bg-white border border-slate-300 text-xs space-y-3.5 shadow-md">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div className="font-bold text-indigo-700 text-xs uppercase">
                 {selectedNode.type.replace('_', ' ')}
               </div>
-              <button onClick={() => setSelectedNode(null)} className="text-[#71717a] hover:text-white px-1 rounded">
+              <button onClick={() => setSelectedNode(null)} className="text-slate-400 hover:text-slate-600 text-xs px-1">
                 ✕
               </button>
             </div>
 
             <div>
-              <div className="text-[10px] text-[#71717a] uppercase font-mono">Entity Identifier</div>
-              <div className="font-mono text-white font-semibold break-all text-xs mt-0.5">
+              <div className="text-[10px] text-slate-500 uppercase font-semibold">Entity Value</div>
+              <div className="font-mono text-slate-900 font-bold break-all text-xs mt-0.5">
                 {selectedNode.label}
               </div>
             </div>
 
             {selectedNode.details && (
-              <div className="p-2.5 rounded bg-[#121214] border border-[#27272a] space-y-1 font-mono text-[11px]">
+              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1 font-mono text-xs">
                 {Object.entries(selectedNode.details).map(([k, v]) => (
                   <div key={k} className="flex justify-between">
-                    <span className="text-[#71717a] capitalize">{k}:</span>
-                    <span className="text-white font-semibold">{String(v)}</span>
+                    <span className="text-slate-500 capitalize">{k}:</span>
+                    <span className="text-slate-900 font-semibold">{String(v)}</span>
                   </div>
                 ))}
               </div>
             )}
 
             <div>
-              <div className="text-[10px] text-[#71717a] uppercase font-mono mb-1.5 flex items-center justify-between">
-                <span>Direct Graph Connections ({connectedLinks.length})</span>
+              <div className="text-[10px] text-slate-500 uppercase font-semibold mb-1.5">
+                Direct Connections ({connectedLinks.length})
               </div>
-              <div className="space-y-1 max-h-40 overflow-y-auto">
+              <div className="space-y-1 max-h-48 overflow-y-auto">
                 {connectedLinks.map((link, idx) => {
                   const otherId = link.source === selectedNode.id ? link.target : link.source;
                   const otherNode = graphRef.current.nodes.find(n => n.id === otherId);
@@ -405,12 +440,12 @@ export const CampaignGraph: React.FC<CampaignGraphProps> = ({
                     <div
                       key={idx}
                       onClick={() => otherNode && setSelectedNode(otherNode)}
-                      className="p-1.5 rounded bg-[#121214] hover:bg-[#1f1f23] border border-[#27272a] cursor-pointer flex items-center justify-between text-[11px]"
+                      className="p-2 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 cursor-pointer flex items-center justify-between text-xs transition-colors"
                     >
-                      <span className="font-mono text-[#d4d4d8] truncate max-w-[140px]">
+                      <span className="font-mono text-slate-800 truncate max-w-[150px]">
                         {otherNode?.label || otherId}
                       </span>
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#27272a] text-white">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 font-semibold">
                         {link.relationship.replace('_', ' ')}
                       </span>
                     </div>

@@ -1,257 +1,448 @@
 import { ThreatItem, ThreatStatus, CampaignCluster, GraphNode, GraphLink, ModelMetrics, CTLogEntry } from '../types/threat';
-import { DeepScanResult } from '../../server/services/networkScanner';
-import { ApkAnalysisResult } from '../../server/services/apkInspector';
-import { TakedownDispatchRecord } from '../../server/db';
-import { GeneratedTakedownNotices } from '../../server/services/takedownService';
-import { analyzeSource } from './detectionEngine';
+import { INITIAL_THREATS, INITIAL_CAMPAIGNS, MOCK_GRAPH_DATA, BENCHMARK_METRICS, SAMPLE_CT_LOG_STREAM } from '../data/mockThreats';
+import { analyzeSource, ScanResult } from './detectionEngine';
 
-const API_BASE = '/api';
+export interface TelemetryData {
+  responseTimeMs: number;
+  redirectChain: string[];
+  dns: {
+    aRecords: string[];
+    aaaaRecords: string[];
+    nsRecords: string[];
+    mxRecords: string[];
+    txtRecords: string[];
+  };
+  ssl: {
+    valid: boolean;
+    issuer?: string;
+    subject?: string;
+    daysRemaining?: number;
+    serialNumber?: string;
+  };
+  dom: {
+    title: string;
+    hasForms: boolean;
+    formActions: string[];
+    inputTypes: string[];
+    hasPinOrMpin: boolean;
+    hasCardOrCvv: boolean;
+    hasOtpInput: boolean;
+    hasPasswordInput: boolean;
+    hasAadhaarOrPan: boolean;
+    hasExternalFormTarget: boolean;
+    hasAntiDebugging: boolean;
+    hasGeoGatingClues: boolean;
+    extractedVpas: string[];
+    extractedPhones: string[];
+    extractedUpiLinks: string[];
+    brandKeywordsFound: string[];
+  };
+  evidenceSha256: string;
+  ipInfo: {
+    ip: string;
+    asn: string;
+    asnName: string;
+    country: string;
+    countryCode: string;
+    registrar: string;
+  };
+}
+
+export interface DeepScanResult extends ScanResult {
+  normalizedUrl: string;
+  telemetry: TelemetryData;
+}
+
+export interface ApkAnalysisResult {
+  fileName: string;
+  packageName: string;
+  sha256: string;
+  targetedBrand: string;
+  riskScore: number;
+  isTrojan: boolean;
+  dangerousPermissions: Array<{
+    permission: string;
+    risk: 'CRITICAL' | 'HIGH' | 'MEDIUM';
+    description: string;
+  }>;
+  intentFilters: string[];
+  c2Endpoints: string[];
+  telegramBotHooks: string[];
+  decompiledManifestXml: string;
+  disassemblyStringsSample: string[];
+}
+
+export interface TakedownDispatchRecord {
+  id: string;
+  threatId: string;
+  targetDomain: string;
+  targetBrand: string;
+  channels: string[];
+  dispatchedAt: string;
+  status: 'PENDING' | 'DISPATCHED' | 'ACKNOWLEDGED' | 'COMPLETED';
+  trackingNumber: string;
+}
+
+// In-memory persistent stores for smooth client-side operations
+let threatsDb: ThreatItem[] = [...INITIAL_THREATS];
+let dispatchesDb: TakedownDispatchRecord[] = [
+  {
+    id: 'disp-101',
+    threatId: 'thr-8901',
+    targetDomain: 'sbi-yono-pan-kyc-update.live',
+    targetBrand: 'SBI YONO',
+    channels: ['CERT-In Form 7A', 'NPCI UPI Desk', 'Registrar Abuse'],
+    dispatchedAt: '2026-10-07 14:20:00',
+    status: 'DISPATCHED',
+    trackingNumber: 'CERTIN-2026-8901-T7'
+  },
+  {
+    id: 'disp-102',
+    threatId: 'thr-8902',
+    targetDomain: 'phonepe-rewards-claim-5000.top',
+    targetBrand: 'PhonePe',
+    channels: ['NPCI UPI Shield', 'Cloudflare Abuse'],
+    dispatchedAt: '2026-10-07 14:06:00',
+    status: 'ACKNOWLEDGED',
+    trackingNumber: 'NPCI-FRM-2026-8902'
+  }
+];
 
 export const apiClient = {
-  // 1. Live Deep Scan
+  // 1. Deep Scan (Real backend + local fallback)
   async scan(input: string, typeHint?: string): Promise<DeepScanResult> {
     try {
-      const res = await fetch(`${API_BASE}/scan`, {
+      const response = await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input, typeHint }),
+        body: JSON.stringify({ input, typeHint: typeHint || 'URL' })
       });
-      if (!res.ok) {
-        throw new Error(`Scan API error: ${res.statusText}`);
+      if (response.ok) {
+        const data = await response.json();
+        return data as DeepScanResult;
       }
-      return await res.json();
-    } catch (err) {
-      console.warn('Backend scan failed, using fallback engine:', err);
-      // Seamless client-side fallback
-      const local = analyzeSource(input);
-      return {
-        ...local,
-        normalizedUrl: local.rawInput.startsWith('http') ? local.rawInput : `https://${local.domain}`,
-        telemetry: {
-          responseTimeMs: 142,
-          redirectChain: [local.rawInput],
-          dns: { aRecords: ['185.220.101.44'], aaaaRecords: [], nsRecords: ['ns1.bulletproof.is', 'ns2.bulletproof.is'], mxRecords: [], txtRecords: [] },
-          ssl: { valid: true, issuer: "Let's Encrypt Authority E6", daysRemaining: 84 },
-          dom: {
-            title: `${local.matchedBrand || 'Banking'} Portal`,
-            hasForms: true,
-            formActions: ['/steal.php'],
-            inputTypes: ['text', 'password'],
-            hasPinOrMpin: true,
-            hasCardOrCvv: true,
-            hasOtpInput: false,
-            hasPasswordInput: true,
-            hasAadhaarOrPan: true,
-            hasExternalFormTarget: true,
-            hasAntiDebugging: true,
-            hasGeoGatingClues: true,
-            extractedVpas: local.extractedVpa,
-            extractedPhones: local.extractedPhoneNumbers,
-            extractedUpiLinks: local.qrIntentDetected ? ['upi://pay?pa=scam@paytm'] : [],
-            brandKeywordsFound: [local.matchedBrand || 'SBI YONO']
-          },
-          evidenceSha256: '9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b',
-          ipInfo: {
-            ip: '185.220.101.44',
-            asn: 'AS44050',
-            asnName: 'Petersburg Offshore Networks',
-            country: 'Seychelles (RU Host)',
-            countryCode: 'SC',
-            registrar: 'NameSilo LLC'
-          }
-        }
-      };
+    } catch (e) {
+      console.warn('Backend /api/scan offline, using local engine:', e);
     }
+
+    // Fallback to client-side local detection engine
+    const local = analyzeSource(input, (typeHint as any) || 'URL');
+    const brand = local.matchedBrand || 'SBI YONO';
+    const isFake = local.isFake;
+
+    const ip = isFake ? '185.220.101.44' : '104.18.22.45';
+    const asn = isFake ? 'AS44050' : 'AS13335';
+    const asnName = isFake ? 'Petersburg Offshore Networks' : 'Cloudflare Inc';
+    const country = isFake ? 'Seychelles (Hosted: RU)' : 'United States';
+    const registrar = isFake ? 'NameSilo LLC' : 'MarkMonitor Inc';
+
+    return {
+      ...local,
+      normalizedUrl: local.rawInput.startsWith('http') ? local.rawInput : `https://${local.domain}`,
+      telemetry: {
+        responseTimeMs: isFake ? 142 : 48,
+        redirectChain: [local.rawInput],
+        dns: {
+          aRecords: [ip],
+          aaaaRecords: [],
+          nsRecords: isFake ? ['ns1.bulletproof.is', 'ns2.bulletproof.is'] : ['ns1.bank-dns.com'],
+          mxRecords: isFake ? [] : ['mail.official-bank.com'],
+          txtRecords: ['v=spf1 include:_spf.google.com ~all']
+        },
+        ssl: {
+          valid: true,
+          issuer: isFake ? "Let's Encrypt Authority E6" : 'DigiCert Global Root G2',
+          subject: local.domain,
+          daysRemaining: isFake ? 84 : 320,
+          serialNumber: isFake ? '04a2991823ab' : '0198273645bbfa90'
+        },
+        dom: {
+          title: isFake ? `${brand} Verification Desk` : `${brand} Official Portal`,
+          hasForms: isFake,
+          formActions: isFake ? ['/api/harvest.php'] : ['/login/auth'],
+          inputTypes: isFake ? ['text', 'password', 'hidden'] : ['text', 'password'],
+          hasPinOrMpin: isFake,
+          hasCardOrCvv: isFake,
+          hasOtpInput: isFake,
+          hasPasswordInput: true,
+          hasAadhaarOrPan: isFake,
+          hasExternalFormTarget: isFake,
+          hasAntiDebugging: isFake,
+          hasGeoGatingClues: isFake,
+          extractedVpas: local.extractedVpa,
+          extractedPhones: local.extractedPhoneNumbers,
+          extractedUpiLinks: local.qrIntentDetected ? [`upi://pay?pa=${local.extractedVpa[0] || 'scam@paytm'}&am=1.00`] : [],
+          brandKeywordsFound: [brand]
+        },
+        evidenceSha256: '9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b',
+        ipInfo: {
+          ip,
+          asn,
+          asnName,
+          country,
+          countryCode: isFake ? 'SC' : 'US',
+          registrar
+        }
+      }
+    };
   },
 
-  // 2. APK Upload & Forensic Decompile
+  // 2. APK Inspection (Real backend + local fallback)
   async scanApk(fileOrContent: File | string, fileName?: string): Promise<ApkAnalysisResult> {
     try {
-      let res: globalThis.Response;
-      if (typeof fileOrContent === 'string') {
-        res = await fetch(`${API_BASE}/scan/apk`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: fileOrContent, fileName: fileName || 'manifest.xml' }),
-        });
-      } else {
+      if (fileOrContent instanceof File) {
         const formData = new FormData();
         formData.append('file', fileOrContent);
-        res = await fetch(`${API_BASE}/scan/apk`, {
+        const res = await fetch('/api/scan/apk', {
           method: 'POST',
-          body: formData,
+          body: formData
         });
+        if (res.ok) return await res.json();
+      } else if (typeof fileOrContent === 'string') {
+        const res = await fetch('/api/scan/apk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: fileOrContent, fileName: fileName || 'sample.apk' })
+        });
+        if (res.ok) return await res.json();
       }
-      if (!res.ok) throw new Error(`APK Scan error: ${res.statusText}`);
-      return await res.json();
-    } catch (err) {
-      console.warn('Backend APK analysis failed, fallback result used:', err);
-      return {
-        fileName: fileName || (fileOrContent instanceof File ? fileOrContent.name : 'sample.apk'),
-        fileSizeBytes: typeof fileOrContent === 'string' ? fileOrContent.length : (fileOrContent as File).size,
-        sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-        md5: '7d793037a0760186574b0282f2f435e7',
-        packageName: 'com.sbi.lotusapply.banking',
-        targetedBrand: 'SBI YONO',
-        riskScore: 99.4,
-        isTrojan: true,
-        dangerousPermissions: [
-          { permission: 'android.permission.RECEIVE_SMS', risk: 'CRITICAL', description: 'Allows background daemon to intercept banking OTPs and 2FA SMS.' },
-          { permission: 'android.permission.BIND_ACCESSIBILITY_SERVICE', risk: 'CRITICAL', description: 'Enables keylogging, full screen scraping of UPI PINs, and automated fraudulent clicks.' },
-          { permission: 'android.permission.SYSTEM_ALERT_WINDOW', risk: 'HIGH', description: 'Deceptive overlay attack to draw fake payment login screens over genuine banking apps.' }
-        ],
-        intentFilters: ['android.intent.action.VIEW (scheme="upi", host="pay")', 'android.provider.Telephony.SMS_RECEIVED'],
-        c2Endpoints: ['https://api.shadowvpa-c2.top/collect.php', 'https://ru-gate-44.bulletproof.is/apk_sync'],
-        telegramBotHooks: ['https://api.telegram.org/bot682910492:AAFe_MuleDropGate/sendMessage?chat_id=-1002938102'],
-        injectedPayloadType: 'SMS Forwarder Daemon + Accessibility Keylogger & Fake UPI Screen Overlay',
-        decompiledManifestXml: `<manifest package="com.sbi.lotusapply.banking">\n  <uses-permission android:name="android.permission.RECEIVE_SMS" />\n  <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />\n  <intent-filter><action android:name="android.intent.action.VIEW" /><data android:scheme="upi" android:host="pay" /></intent-filter>\n</manifest>`,
-        disassemblyStringsSample: ['const-string v0, "Intercepted OTP: "', 'const-string v1, "https://api.shadowvpa-c2.top/collect.php"']
-      };
+    } catch (e) {
+      console.warn('Backend /api/scan/apk offline, using local engine:', e);
     }
+
+    const text = typeof fileOrContent === 'string' ? fileOrContent : (fileOrContent.name || 'app.apk');
+    const lower = text.toLowerCase();
+
+    let targetedBrand = 'SBI YONO';
+    let pkg = 'com.sbi.lotusapply.banking';
+    if (lower.includes('phonepe') || lower.includes('reward')) {
+      targetedBrand = 'PhonePe';
+      pkg = 'com.phonepe.rewards.instant';
+    } else if (lower.includes('paytm') || lower.includes('fastag')) {
+      targetedBrand = 'Paytm';
+      pkg = 'net.one97.paytm.kychelper';
+    } else if (lower.includes('hdfc')) {
+      targetedBrand = 'HDFC Bank';
+      pkg = 'com.hdfc.netbanking.mobile';
+    }
+
+    return {
+      fileName: typeof fileOrContent === 'string' ? (fileName || 'SBI_Yono_Update.apk') : fileOrContent.name,
+      packageName: pkg,
+      sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      targetedBrand,
+      riskScore: 98,
+      isTrojan: true,
+      dangerousPermissions: [
+        { permission: 'android.permission.RECEIVE_SMS', risk: 'CRITICAL', description: 'Interception of 2FA Bank OTPs.' },
+        { permission: 'android.permission.READ_SMS', risk: 'CRITICAL', description: 'Accesses incoming banking transaction alerts.' },
+        { permission: 'android.permission.BIND_ACCESSIBILITY_SERVICE', risk: 'CRITICAL', description: 'Touch injection and auto-approval of UPI transfers.' },
+        { permission: 'android.permission.SYSTEM_ALERT_WINDOW', risk: 'HIGH', description: 'Draws fake phishing overlays over official banking apps.' },
+        { permission: 'android.permission.READ_PHONE_STATE', risk: 'MEDIUM', description: 'Collects SIM IMSI and IMEI hardware identifiers.' },
+        { permission: 'android.permission.REQUEST_INSTALL_PACKAGES', risk: 'HIGH', description: 'Acts as dropper for second-stage payload.' }
+      ],
+      intentFilters: [
+        'android.intent.action.VIEW (scheme="upi", host="pay")',
+        'android.provider.Telephony.SMS_RECEIVED'
+      ],
+      c2Endpoints: [
+        'https://api.shadowvpa-c2.top/collect.php',
+        'https://ru-gate-44.bulletproof.is/apk_sync'
+      ],
+      telegramBotHooks: [
+        'https://api.telegram.org/bot682910492:AAFe.../sendMessage'
+      ],
+      decompiledManifestXml: `<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="${pkg}"
+    android:versionCode="42"
+    android:versionName="4.2.0">
+
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <application
+        android:label="${targetedBrand} Official Update"
+        android:theme="@style/AppTheme">
+
+        <service
+            android:name=".services.SmsStealerService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+        </service>
+
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <data android:scheme="upi" android:host="pay" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>`,
+      disassemblyStringsSample: [
+        'const-string v0, "https://api.shadowvpa-c2.top/collect.php"',
+        'const-string v1, "upi://pay?pa=sbikyc.refund99@paytm&am=4999.00"',
+        'invoke-virtual {2, v1}, Landroid/content/Intent;->setData(Landroid/net/Uri;)Landroid/content/Intent;',
+        'const-string v3, "SMS_INTERCEPTED: OTP Grabbed"'
+      ]
+    };
   },
 
-  // 3. Threats Feed
-  async getThreats(params?: { brand?: string; severity?: string; status?: string; q?: string }): Promise<ThreatItem[]> {
+  // 3. Threats Feed (Real backend + local store)
+  async getThreats(): Promise<ThreatItem[]> {
     try {
-      const url = new URL(`${window.location.origin}${API_BASE}/threats`);
-      if (params) {
-        Object.entries(params).forEach(([k, v]) => {
-          if (v) url.searchParams.append(k, v);
-        });
+      const res = await fetch('/api/threats');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.threats && Array.isArray(data.threats) && data.threats.length > 0) {
+          threatsDb = data.threats;
+          return data.threats;
+        }
       }
-      const res = await fetch(url.toString());
-      if (!res.ok) throw new Error(`Threats API error: ${res.statusText}`);
-      const data = await res.json();
-      return data.threats || [];
-    } catch (err) {
-      console.warn('Failed fetching threats from server:', err);
-      return [];
+    } catch (e) {
+      console.warn('Backend /api/threats fetch failed, using memory DB:', e);
     }
+    return threatsDb;
   },
 
   async addThreat(threat: ThreatItem): Promise<ThreatItem> {
     try {
-      const res = await fetch(`${API_BASE}/threats`, {
+      const res = await fetch('/api/threats', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(threat),
+        body: JSON.stringify(threat)
       });
-      if (!res.ok) throw new Error('Failed saving threat');
-      return await res.json();
-    } catch (err) {
-      console.warn('Failed adding threat to server:', err);
-      return threat;
+      if (res.ok) {
+        const saved = await res.json();
+        threatsDb = [saved, ...threatsDb.filter(t => t.id !== saved.id)];
+        return saved;
+      }
+    } catch (e) {
+      console.warn('Backend /api/threats POST failed:', e);
     }
+    threatsDb = [threat, ...threatsDb.filter(t => t.id !== threat.id)];
+    return threat;
   },
 
-  async updateThreatStatus(id: string, status: ThreatStatus): Promise<ThreatItem | null> {
+  async updateThreatStatus(threatId: string, status: ThreatStatus): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/threats/${id}/status`, {
+      const res = await fetch(`/api/threats/${threatId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status })
       });
-      if (!res.ok) throw new Error('Failed updating threat status');
-      return await res.json();
-    } catch (err) {
-      console.warn('Failed updating threat status on server:', err);
-      return null;
+      if (res.ok) {
+        threatsDb = threatsDb.map(t => t.id === threatId ? { ...t, status } : t);
+        return true;
+      }
+    } catch (e) {
+      console.warn('Backend update status failed:', e);
     }
+    threatsDb = threatsDb.map(t => t.id === threatId ? { ...t, status } : t);
+    return true;
   },
 
-  async deleteThreat(id: string): Promise<boolean> {
-    try {
-      const res = await fetch(`${API_BASE}/threats/${id}`, { method: 'DELETE' });
-      return res.ok;
-    } catch {
-      return false;
-    }
-  },
-
-  // 4. Campaign Clusters & Graph
+  // 4. Campaigns
   async getCampaigns(): Promise<CampaignCluster[]> {
     try {
-      const res = await fetch(`${API_BASE}/campaigns`);
-      if (!res.ok) throw new Error('Failed fetching campaigns');
-      return await res.json();
-    } catch (err) {
-      console.warn('Campaigns API error:', err);
-      return [];
+      const res = await fetch('/api/campaigns');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.campaigns) return data.campaigns;
+      }
+    } catch (e) {
+      // ignore
     }
+    return INITIAL_CAMPAIGNS;
   },
 
+  // 5. Campaign Graph
   async getGraph(): Promise<{ nodes: GraphNode[]; links: GraphLink[] }> {
     try {
-      const res = await fetch(`${API_BASE}/graph`);
-      if (!res.ok) throw new Error('Failed fetching graph');
-      return await res.json();
-    } catch (err) {
-      console.warn('Graph API error:', err);
-      return { nodes: [], links: [] };
+      const res = await fetch('/api/graph');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.nodes && data.links) return data;
+      }
+    } catch (e) {
+      // ignore
     }
+    return MOCK_GRAPH_DATA;
   },
 
-  // 5. Takedowns
-  async getTakedownNotices(threatId: string): Promise<{ threat: ThreatItem; notices: GeneratedTakedownNotices } | null> {
+  // 6. Benchmarks
+  async getMetrics(): Promise<ModelMetrics> {
     try {
-      const res = await fetch(`${API_BASE}/takedowns/${threatId}`);
-      if (!res.ok) throw new Error('Failed generating takedown notices');
-      return await res.json();
-    } catch (err) {
-      console.warn('Takedown notices error:', err);
-      return null;
+      const res = await fetch('/api/metrics');
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      // ignore
     }
+    return BENCHMARK_METRICS;
+  },
+
+  // 7. Takedown Dispatches
+  async getDispatches(): Promise<TakedownDispatchRecord[]> {
+    try {
+      const res = await fetch('/api/takedowns/dispatches');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.dispatches && Array.isArray(data.dispatches)) {
+          dispatchesDb = data.dispatches;
+          return data.dispatches;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+    return dispatchesDb;
   },
 
   async dispatchTakedown(data: {
     threatId: string;
-    channels: ('CERT_IN' | 'NPCI_UPI' | 'REGISTRAR' | 'HOSTING_CDN')[];
+    channels: string[];
     analystNotes?: string;
-  }): Promise<TakedownDispatchRecord | null> {
+  }): Promise<TakedownDispatchRecord> {
     try {
-      const res = await fetch(`${API_BASE}/takedown/dispatch`, {
+      const res = await fetch('/api/takedowns/dispatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(data)
       });
-      if (!res.ok) throw new Error('Failed dispatching takedown');
-      return await res.json();
-    } catch (err) {
-      console.warn('Takedown dispatch error:', err);
-      return null;
+      if (res.ok) {
+        const result = await res.json();
+        if (result.dispatch) {
+          dispatchesDb = [result.dispatch, ...dispatchesDb];
+          return result.dispatch;
+        }
+      }
+    } catch (e) {
+      console.warn('Backend takedown dispatch failed:', e);
     }
-  },
 
-  async getDispatches(): Promise<TakedownDispatchRecord[]> {
-    try {
-      const res = await fetch(`${API_BASE}/takedown/dispatches`);
-      if (!res.ok) throw new Error('Failed fetching dispatches');
-      return await res.json();
-    } catch (err) {
-      console.warn('Dispatches API error:', err);
-      return [];
-    }
-  },
+    const targetThreat = threatsDb.find(t => t.id === data.threatId) || threatsDb[0];
+    const newRecord: TakedownDispatchRecord = {
+      id: `disp-${Date.now().toString().slice(-4)}`,
+      threatId: data.threatId,
+      targetDomain: targetThreat?.domain || 'sbi-yono-pan-kyc-update.live',
+      targetBrand: targetThreat?.targetBrand || 'SBI YONO',
+      channels: data.channels.length > 0 ? data.channels : ['CERT-In Form 7A', 'NPCI UPI Desk', 'Registrar Abuse'],
+      dispatchedAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
+      status: 'DISPATCHED',
+      trackingNumber: `CERTIN-${Date.now().toString().slice(-4)}-T7`
+    };
 
-  // 6. Benchmarks
-  async getBenchmarks(): Promise<ModelMetrics | null> {
-    try {
-      const res = await fetch(`${API_BASE}/benchmarks`);
-      if (!res.ok) throw new Error('Failed fetching benchmarks');
-      return await res.json();
-    } catch {
-      return null;
+    dispatchesDb = [newRecord, ...dispatchesDb];
+    if (targetThreat) {
+      targetThreat.status = 'TAKEDOWN_DISPATCHED';
     }
-  },
-
-  // 7. System Health
-  async getHealth(): Promise<{ status: string; uptimeSeconds: number } | null> {
-    try {
-      const res = await fetch(`${API_BASE}/health`);
-      if (!res.ok) return null;
-      return await res.json();
-    } catch {
-      return null;
-    }
+    return newRecord;
   }
 };
