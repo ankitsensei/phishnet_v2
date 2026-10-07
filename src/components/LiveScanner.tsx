@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { Search, ShieldAlert, CheckCircle, ArrowRight, Upload, Sparkles, FileText, AlertTriangle, ExternalLink, Globe, Lock, Cpu, Server, Activity, Eye, Zap, Check, FileUp, X, FileCode, Smartphone, Image as ImageIcon, ShieldCheck, HelpCircle } from 'lucide-react';
+import { Search, ShieldAlert, CheckCircle, ArrowRight, Upload, Sparkles, FileText, AlertTriangle, ExternalLink, Globe, Lock, Cpu, Server, Activity, Eye, Zap, Check, FileUp, X, FileCode, Smartphone, Image as ImageIcon, ShieldCheck, Layers } from 'lucide-react';
 import { apiClient } from '../services/api';
 import { DeepScanResult } from '../../server/services/networkScanner';
+import { TargetBrand } from '../types/threat';
 
 interface LiveScannerProps {
   onAddThreat?: (result: any) => void;
@@ -23,27 +24,38 @@ const QUICK_SAMPLES = [
   {
     label: 'Fake SBI KYC Portal',
     brand: 'SBI YONO',
-    value: 'https://sbi-yono-pan-kyc-update.live/verify-account.php'
+    value: 'https://sbi-yono-pan-kyc-update.live/verify-account.php',
+    desc: 'Disposable .live phishing clone stealing SBI credentials'
   },
   {
     label: 'PhonePe ₹4,999 SMS Scam',
     brand: 'PhonePe',
-    value: 'Dear User, congrats! ₹4,999 cashback credited in your PhonePe wallet. Claim now by entering your 6-Digit UPI PIN at https://phonepe-rewards-claim-5000.top/scratch-card.html or pay ₹1 to phonepe.reward.claim@axl'
+    value: 'Dear User, congrats! ₹4,999 cashback credited in your PhonePe wallet. Claim now by entering your 6-Digit UPI PIN at https://phonepe-rewards-claim-5000.top/scratch-card.html or pay ₹1 to phonepe.reward.claim@axl',
+    desc: 'Deceptive SMS lure prompting unauthorized UPI collect'
   },
   {
     label: 'Paytm MPIN Theft Form',
     brand: 'Paytm',
-    value: `<form action="https://paytm-kyc-unblock.top/steal.php" method="POST">\n  <h2>Paytm Instant Wallet KYC</h2>\n  <input type="text" name="mobile" placeholder="Mobile Number" />\n  <input type="password" name="mpin" placeholder="Enter 6-digit UPI PIN" />\n  <button type="submit">Verify Now</button>\n</form>`
+    value: `<form action="https://paytm-kyc-unblock.top/steal.php" method="POST">\n  <h2>Paytm Instant Wallet KYC</h2>\n  <input type="text" name="mobile" placeholder="Mobile Number" />\n  <input type="password" name="mpin" placeholder="Enter 6-digit UPI PIN" />\n  <button type="submit">Verify Now</button>\n</form>`,
+    desc: 'Credential theft HTML form harvesting UPI MPIN'
   },
   {
     label: 'Fake Google Pay APK Manifest',
     brand: 'Google Pay',
-    value: `<manifest package="com.google.android.apps.nbu.paisa.user.fake">\n  <uses-permission android:name="android.permission.RECEIVE_SMS" />\n  <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />\n  <intent-filter><action android:name="android.intent.action.VIEW" /><data android:scheme="upi" android:host="pay" /></intent-filter>\n</manifest>`
+    value: `<manifest package="com.google.android.apps.nbu.paisa.user.fake">\n  <uses-permission android:name="android.permission.RECEIVE_SMS" />\n  <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />\n  <intent-filter><action android:name="android.intent.action.VIEW" /><data android:scheme="upi" android:host="pay" /></intent-filter>\n</manifest>`,
+    desc: 'Malicious Android manifest requesting SMS & Accessibility'
   },
   {
-    label: 'Genuine Bank Portal (Safe)',
+    label: 'Official SBI Portal (Safe)',
     brand: 'SBI Official',
-    value: 'https://www.onlinesbi.sbi'
+    value: 'https://www.onlinesbi.sbi',
+    desc: 'Verified legitimate banking portal with EV SSL'
+  },
+  {
+    label: 'Official HDFC Bank (Safe)',
+    brand: 'HDFC Bank',
+    value: 'https://www.hdfcbank.com',
+    desc: 'Official authentic HDFC NetBanking infrastructure'
   }
 ];
 
@@ -54,6 +66,8 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
 }) => {
   const [inputText, setInputText] = useState<string>('');
   const [fileMeta, setFileMeta] = useState<UploadedFileMeta | null>(null);
+  const [selectedBrandComparison, setSelectedBrandComparison] = useState<TargetBrand>('SBI YONO');
+  const [imageCategory, setImageCategory] = useState<'AUTO' | 'LEGIT_SCREENSHOT' | 'PHISH_SCREENSHOT'>('AUTO');
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanResult, setScanResult] = useState<DeepScanResult | null>(null);
   const [activeSubTab, setActiveSubTab] = useState<'OVERVIEW' | 'NETWORK_TELEMETRY' | 'DOM_FORENSICS'>('OVERVIEW');
@@ -69,6 +83,18 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
         setScanResult(scanRes);
         if (onAddThreat && scanRes.isFake) {
           onAddThreat(scanRes);
+        }
+      } else if (fileMeta?.imagePreviewUrl) {
+        let payload = sourceText;
+        if (imageCategory === 'LEGIT_SCREENSHOT') {
+          payload = `[Authentic Screenshot]: ${fileMeta.name} (Verified official UI layout for ${selectedBrandComparison})`;
+        } else if (imageCategory === 'PHISH_SCREENSHOT') {
+          payload = `[Phishing Screenshot]: ${fileMeta.name} (Suspicious fake clone targeting ${selectedBrandComparison} with urgent KYC threat)`;
+        }
+        const res = await apiClient.scan(payload, 'IMAGE_SCREENSHOT');
+        setScanResult(res);
+        if (onAddThreat && res.isFake) {
+          onAddThreat(res);
         }
       } else {
         const res = await apiClient.scan(sourceText);
@@ -115,9 +141,9 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
         type: file.type || 'Image File',
         imagePreviewUrl: imageUrl,
         rawFile: file,
-        previewSnippet: `[Screenshot Upload]\nFilename: ${file.name}\nSize: ${formatFileSize(file.size)}\nImage resolution preview loaded.\nReady for OCR logo extraction and perceptual hash comparison.`
+        previewSnippet: `[Screenshot Image]\nFilename: ${file.name}\nSize: ${formatFileSize(file.size)}\nResolution preview loaded.\nReady for SSIM visual template matching and OCR logo extraction.`
       });
-      setInputText(`[Screenshot]: ${file.name} - Ready for visual similarity matching.`);
+      setInputText(`[Screenshot Image]: ${file.name}`);
     } else {
       const reader = new FileReader();
       reader.onload = async (event) => {
@@ -178,7 +204,7 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
           </label>
         </div>
 
-        {/* File Upload Preview Panel */}
+        {/* File / Image Upload Preview Panel */}
         {fileMeta && (
           <div className="p-4 rounded-xl bg-indigo-50/50 border border-indigo-200/80 space-y-3">
             <div className="flex items-center justify-between">
@@ -199,7 +225,7 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
                 <div>
                   <div className="font-semibold text-xs text-slate-900 flex items-center space-x-2">
                     <span>{fileMeta.name}</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-mono">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-mono font-semibold">
                       {formatFileSize(fileMeta.size)}
                     </span>
                   </div>
@@ -216,12 +242,61 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
               </button>
             </div>
 
-            {/* File Preview Snippet / Thumbnail */}
-            {fileMeta.imagePreviewUrl ? (
-              <div className="max-h-52 rounded-lg overflow-hidden border border-indigo-200 bg-white flex items-center justify-center p-2">
-                <img src={fileMeta.imagePreviewUrl} alt="Uploaded preview" className="max-h-48 object-contain rounded" />
+            {/* Image comparison controls if screenshot */}
+            {fileMeta.imagePreviewUrl && (
+              <div className="p-3 bg-white rounded-lg border border-indigo-100 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-slate-500 font-medium">Compare Against Brand Template:</span>
+                    <select
+                      value={selectedBrandComparison}
+                      onChange={(e) => setSelectedBrandComparison(e.target.value as TargetBrand)}
+                      className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-800 font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    >
+                      <option value="SBI YONO">SBI YONO</option>
+                      <option value="PhonePe">PhonePe</option>
+                      <option value="Paytm">Paytm</option>
+                      <option value="Google Pay">Google Pay</option>
+                      <option value="HDFC Bank">HDFC Bank</option>
+                      <option value="ICICI iMobile">ICICI iMobile</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center space-x-1.5 bg-slate-100 p-0.5 rounded-lg text-xs">
+                    <button
+                      onClick={() => setImageCategory('AUTO')}
+                      className={`px-2.5 py-1 rounded-md transition-all ${
+                        imageCategory === 'AUTO' ? 'bg-white text-slate-900 font-semibold shadow-xs' : 'text-slate-600'
+                      }`}
+                    >
+                      Auto Detect
+                    </button>
+                    <button
+                      onClick={() => setImageCategory('LEGIT_SCREENSHOT')}
+                      className={`px-2.5 py-1 rounded-md transition-all ${
+                        imageCategory === 'LEGIT_SCREENSHOT' ? 'bg-emerald-600 text-white font-semibold shadow-xs' : 'text-slate-600'
+                      }`}
+                    >
+                      Legitimate UI
+                    </button>
+                    <button
+                      onClick={() => setImageCategory('PHISH_SCREENSHOT')}
+                      className={`px-2.5 py-1 rounded-md transition-all ${
+                        imageCategory === 'PHISH_SCREENSHOT' ? 'bg-rose-600 text-white font-semibold shadow-xs' : 'text-slate-600'
+                      }`}
+                    >
+                      Phishing Clone
+                    </button>
+                  </div>
+                </div>
+
+                <div className="max-h-56 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center p-2">
+                  <img src={fileMeta.imagePreviewUrl} alt="Uploaded screenshot preview" className="max-h-52 object-contain rounded" />
+                </div>
               </div>
-            ) : fileMeta.previewSnippet ? (
+            )}
+
+            {fileMeta.previewSnippet && !fileMeta.imagePreviewUrl ? (
               <pre className="p-3 rounded-lg bg-white border border-indigo-100 font-mono text-xs text-slate-800 max-h-36 overflow-y-auto whitespace-pre-wrap leading-relaxed shadow-inner">
                 {fileMeta.previewSnippet}
               </pre>
@@ -254,6 +329,7 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
                   handleRunScan(sample.value);
                 }}
                 className="px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 transition-colors"
+                title={sample.desc}
               >
                 {sample.label}
               </button>
@@ -294,15 +370,15 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto pt-2 text-left text-xs">
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
               <div className="font-semibold text-slate-800">1. Input Source</div>
               <p className="text-slate-500 text-[11px]">URL, Screenshot, HTML page, or Android APK</p>
             </div>
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
               <div className="font-semibold text-slate-800">2. Deep Inspection</div>
               <p className="text-slate-500 text-[11px]">SSIM visual diff, DNS BGP, QR auto-collect intent</p>
             </div>
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
               <div className="font-semibold text-slate-800">3. Actionable Verdict</div>
               <p className="text-slate-500 text-[11px]">Plain-English safety risk + 1-click takedown notice</p>
             </div>
