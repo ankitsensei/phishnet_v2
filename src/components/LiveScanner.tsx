@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Search, ShieldAlert, CheckCircle, ArrowRight, Upload, Sparkles, FileText, AlertTriangle, ExternalLink, Globe, Lock, Cpu, Server, Activity, Eye, Zap, Check, FileUp, X, FileCode, Smartphone, Image as ImageIcon } from 'lucide-react';
+import { Search, ShieldAlert, CheckCircle, ArrowRight, Upload, Sparkles, FileText, AlertTriangle, ExternalLink, Globe, Lock, Cpu, Server, Activity, Eye, Zap, Check, FileUp, X, FileCode, Smartphone, Image as ImageIcon, ShieldCheck, HelpCircle } from 'lucide-react';
 import { apiClient } from '../services/api';
 import { DeepScanResult } from '../../server/services/networkScanner';
 
@@ -16,6 +16,7 @@ interface UploadedFileMeta {
   previewSnippet?: string;
   imagePreviewUrl?: string;
   isApk?: boolean;
+  rawFile?: File;
 }
 
 const QUICK_SAMPLES = [
@@ -51,26 +52,30 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
   onNavigateToTakedowns,
   onNavigateToSimilarity
 }) => {
-  const [inputText, setInputText] = useState<string>(QUICK_SAMPLES[0].value);
+  const [inputText, setInputText] = useState<string>('');
   const [fileMeta, setFileMeta] = useState<UploadedFileMeta | null>(null);
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanResult, setScanResult] = useState<DeepScanResult | null>(null);
   const [activeSubTab, setActiveSubTab] = useState<'OVERVIEW' | 'NETWORK_TELEMETRY' | 'DOM_FORENSICS'>('OVERVIEW');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Initial scan on load
-  React.useEffect(() => {
-    handleRunScan(QUICK_SAMPLES[0].value);
-  }, []);
-
   const handleRunScan = async (sourceText: string) => {
     if (!sourceText.trim()) return;
     setIsScanning(true);
     try {
-      const res = await apiClient.scan(sourceText);
-      setScanResult(res);
-      if (onAddThreat && res.isFake) {
-        onAddThreat(res);
+      if (fileMeta?.isApk && fileMeta.rawFile) {
+        const apkRes = await apiClient.scanApk(fileMeta.rawFile);
+        const scanRes = await apiClient.scan(apkRes.decompiledManifestXml, 'APK_APP');
+        setScanResult(scanRes);
+        if (onAddThreat && scanRes.isFake) {
+          onAddThreat(scanRes);
+        }
+      } else {
+        const res = await apiClient.scan(sourceText);
+        setScanResult(res);
+        if (onAddThreat && res.isFake) {
+          onAddThreat(res);
+        }
       }
     } catch (err) {
       console.error('Scan error:', err);
@@ -90,7 +95,7 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
     if (!file) return;
 
     const isApk = file.name.endsWith('.apk');
-    const isImage = file.type.startsWith('image/');
+    const isImage = file.type.startsWith('image/') || /\.(png|jpe?g|webp|gif|bmp)$/i.test(file.name);
 
     if (isApk) {
       setFileMeta({
@@ -98,24 +103,10 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
         size: file.size,
         type: 'Android Package (APK)',
         isApk: true,
-        previewSnippet: `[APK Package Archive]\nFilename: ${file.name}\nSize: ${formatFileSize(file.size)}\nTarget: Android OS (Automated decompiler will parse AndroidManifest.xml and Smali bytecode)`
+        rawFile: file,
+        previewSnippet: `[APK Package Archive]\nFilename: ${file.name}\nSize: ${formatFileSize(file.size)}\nTarget: Android Application\nReady to decompile AndroidManifest.xml and analyze permissions.`
       });
-
-      setIsScanning(true);
-      try {
-        const apkRes = await apiClient.scanApk(file);
-        const textPayload = `[APK UPLOAD]: ${apkRes.fileName}\nPackage: ${apkRes.packageName}\nTarget: ${apkRes.targetedBrand}\nRisk Score: ${apkRes.riskScore}%`;
-        setInputText(textPayload);
-        const scanRes = await apiClient.scan(apkRes.decompiledManifestXml, 'APK_APP');
-        setScanResult(scanRes);
-        if (onAddThreat && scanRes.isFake) {
-          onAddThreat(scanRes);
-        }
-      } catch (err) {
-        console.error('APK upload error:', err);
-      } finally {
-        setIsScanning(false);
-      }
+      setInputText(`[APK Upload]: ${file.name} - Ready for static security analysis.`);
     } else if (isImage) {
       const imageUrl = URL.createObjectURL(file);
       setFileMeta({
@@ -123,10 +114,10 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
         size: file.size,
         type: file.type || 'Image File',
         imagePreviewUrl: imageUrl,
-        previewSnippet: `[Screenshot Upload]\nFilename: ${file.name}\nResolution preview loaded.\nOCR + Visual SSIM similarity pipeline active.`
+        rawFile: file,
+        previewSnippet: `[Screenshot Upload]\nFilename: ${file.name}\nSize: ${formatFileSize(file.size)}\nImage resolution preview loaded.\nReady for OCR logo extraction and perceptual hash comparison.`
       });
-      setInputText(`[Image Screenshot]: ${file.name} - Analyzing visual similarity & OCR logos...`);
-      handleRunScan(`[Image Screenshot]: ${file.name}`);
+      setInputText(`[Screenshot]: ${file.name} - Ready for visual similarity matching.`);
     } else {
       const reader = new FileReader();
       reader.onload = async (event) => {
@@ -136,10 +127,10 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
           name: file.name,
           size: file.size,
           type: file.type || 'Text/Code Document',
-          previewSnippet: lines + (content.split('\n').length > 12 ? '\n... (truncated)' : '')
+          rawFile: file,
+          previewSnippet: lines + (content.split('\n').length > 12 ? '\n... (truncated for preview)' : '')
         });
         setInputText(content);
-        handleRunScan(content);
       };
       reader.readAsText(file);
     }
@@ -151,8 +142,8 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
 
   const handleClearFile = () => {
     setFileMeta(null);
-    setInputText(QUICK_SAMPLES[0].value);
-    handleRunScan(QUICK_SAMPLES[0].value);
+    setInputText('');
+    setScanResult(null);
   };
 
   return (
@@ -163,7 +154,7 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
           UPI & Banking Phishing Detector
         </h1>
         <p className="text-sm text-slate-600 max-w-2xl mx-auto">
-          Analyze suspicious URLs, SMS text lures, HTML page templates, APK apps, or UPI payment IDs to detect fake clones and credential theft in real-time.
+          Add a target URL, upload a screenshot or file, or paste suspicious SMS text to detect fake payment portals and credential harvesting in real-time.
         </p>
       </div>
 
@@ -171,23 +162,23 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
       <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <label className="text-xs font-semibold text-slate-700 uppercase tracking-wide flex items-center space-x-2">
-            <span>Enter Target to Scan:</span>
+            <span>Add Target to Analyze:</span>
           </label>
 
           <label className="cursor-pointer text-xs text-indigo-600 hover:text-indigo-700 font-medium flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-50 transition-colors">
             <Upload className="w-3.5 h-3.5" />
-            <span>Upload File (.apk, .html, .txt, .png)</span>
+            <span>Upload Image or File (.apk, .png, .html, .txt)</span>
             <input
               ref={fileInputRef}
               type="file"
               onChange={handleFileUpload}
-              accept=".apk,.html,.htm,.txt,.json,.xml,.png,.jpg,.webp"
+              accept=".apk,.html,.htm,.txt,.json,.xml,.png,.jpg,.jpeg,.webp"
               className="hidden"
             />
           </label>
         </div>
 
-        {/* File Upload Preview Panel if active */}
+        {/* File Upload Preview Panel */}
         {fileMeta && (
           <div className="p-4 rounded-xl bg-indigo-50/50 border border-indigo-200/80 space-y-3">
             <div className="flex items-center justify-between">
@@ -212,7 +203,7 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
                       {formatFileSize(fileMeta.size)}
                     </span>
                   </div>
-                  <div className="text-[11px] text-slate-500">{fileMeta.type}</div>
+                  <div className="text-[11px] text-slate-500">{fileMeta.type} • Ready to analyze</div>
                 </div>
               </div>
 
@@ -227,8 +218,8 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
 
             {/* File Preview Snippet / Thumbnail */}
             {fileMeta.imagePreviewUrl ? (
-              <div className="max-h-48 rounded-lg overflow-hidden border border-indigo-200 bg-white flex items-center justify-center p-2">
-                <img src={fileMeta.imagePreviewUrl} alt="Uploaded preview" className="max-h-40 object-contain rounded" />
+              <div className="max-h-52 rounded-lg overflow-hidden border border-indigo-200 bg-white flex items-center justify-center p-2">
+                <img src={fileMeta.imagePreviewUrl} alt="Uploaded preview" className="max-h-48 object-contain rounded" />
               </div>
             ) : fileMeta.previewSnippet ? (
               <pre className="p-3 rounded-lg bg-white border border-indigo-100 font-mono text-xs text-slate-800 max-h-36 overflow-y-auto whitespace-pre-wrap leading-relaxed shadow-inner">
@@ -245,7 +236,7 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
             onChange={(e) => {
               setInputText(e.target.value);
             }}
-            placeholder="Paste suspicious website URL, raw HTML, SMS text message, or UPI VPA..."
+            placeholder="Paste suspicious website URL, raw HTML, SMS text message, or UPI VPA (e.g. https://sbi-yono-pan-kyc-update.live)..."
             className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm text-slate-900 font-mono focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all resize-none leading-relaxed"
           />
         </div>
@@ -253,7 +244,7 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
         {/* Quick Sample Chips & Check Button */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs text-slate-500 font-medium mr-1">Quick Examples:</span>
+            <span className="text-xs text-slate-500 font-medium mr-1">Sample Scenarios:</span>
             {QUICK_SAMPLES.map((sample, idx) => (
               <button
                 key={idx}
@@ -271,8 +262,8 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
 
           <button
             onClick={() => handleRunScan(inputText)}
-            disabled={isScanning}
-            className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm flex items-center space-x-2 transition-all disabled:opacity-50"
+            disabled={isScanning || !inputText.trim()}
+            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm flex items-center space-x-2 transition-all disabled:opacity-40"
           >
             {isScanning ? (
               <span className="flex items-center space-x-2">
@@ -282,12 +273,42 @@ export const LiveScanner: React.FC<LiveScannerProps> = ({
             ) : (
               <>
                 <Search className="w-4 h-4" />
-                <span>Scan & Analyze</span>
+                <span>Analyze Target</span>
               </>
             )}
           </button>
         </div>
       </div>
+
+      {/* Empty State when no scan has been executed yet */}
+      {!scanResult && !isScanning && (
+        <div className="p-8 rounded-2xl bg-white border border-slate-200/80 text-center space-y-4 shadow-sm">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto text-indigo-600 shadow-xs">
+            <ShieldCheck className="w-6 h-6" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-base font-bold text-slate-900">Ready to Analyze</h3>
+            <p className="text-xs text-slate-500 max-w-md mx-auto">
+              Enter a website URL above, upload an image/APK file, or click any sample scenario to run real-time forensic detection.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto pt-2 text-left text-xs">
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
+              <div className="font-semibold text-slate-800">1. Input Source</div>
+              <p className="text-slate-500 text-[11px]">URL, Screenshot, HTML page, or Android APK</p>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
+              <div className="font-semibold text-slate-800">2. Deep Inspection</div>
+              <p className="text-slate-500 text-[11px]">SSIM visual diff, DNS BGP, QR auto-collect intent</p>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
+              <div className="font-semibold text-slate-800">3. Actionable Verdict</div>
+              <p className="text-slate-500 text-[11px]">Plain-English safety risk + 1-click takedown notice</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Results View */}
       {scanResult && (
