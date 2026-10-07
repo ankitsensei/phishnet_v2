@@ -1,9 +1,11 @@
 import React from 'react';
-import { Shield, Search, List, Network, FileText, BarChart2 } from 'lucide-react';
+import { Shield, Search, List, Network, FileText, BarChart2, Smartphone, Radio } from 'lucide-react';
+
+export type TabType = 'detector' | 'apk' | 'ctstream' | 'threats' | 'graph' | 'takedowns' | 'benchmarks';
 
 interface NavbarProps {
-  activeTab: 'detector' | 'threats' | 'graph' | 'takedowns' | 'benchmarks';
-  setActiveTab: (tab: 'detector' | 'threats' | 'graph' | 'takedowns' | 'benchmarks') => void;
+  activeTab: TabType;
+  setActiveTab: (tab: TabType) => void;
   threatCount: number;
 }
 
@@ -13,16 +15,18 @@ export const Navbar: React.FC<NavbarProps> = ({
   threatCount
 }) => {
   const tabs = [
-    { id: 'detector', label: 'Detector', icon: Search },
-    { id: 'threats', label: 'Live Threats', icon: List, badge: `${threatCount}` },
+    { id: 'detector', label: 'Scanner', icon: Search },
+    { id: 'apk', label: 'APK Lab', icon: Smartphone },
+    { id: 'ctstream', label: 'CT Stream', icon: Radio },
+    { id: 'threats', label: 'Threat Feed', icon: List, badge: `${threatCount}` },
     { id: 'graph', label: 'Campaign Graph', icon: Network },
-    { id: 'takedowns', label: 'Takedown Reports', icon: FileText },
-    { id: 'benchmarks', label: 'Accuracy', icon: BarChart2 },
+    { id: 'takedowns', label: 'Takedowns', icon: FileText },
+    { id: 'benchmarks', label: 'Metrics', icon: BarChart2 },
   ] as const;
 
   return (
     <header className="sticky top-0 z-30 border-b border-[#222226] bg-[#000000]/95 backdrop-blur-md">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
           <div
@@ -33,21 +37,21 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Shield className="w-4 h-4" />
             </div>
             <div>
-              <span className="font-semibold text-sm text-white tracking-tight">PhishNet</span>
-              <span className="text-[11px] text-[#71717a] ml-1.5 font-mono">UPI Shield</span>
+              <span className="font-semibold text-sm text-white tracking-tight">PhishNet V2</span>
+              <span className="text-[11px] text-[#71717a] ml-1.5 font-mono">Full-Stack Shield</span>
             </div>
           </div>
 
           {/* Navigation Tabs */}
-          <nav className="flex items-center space-x-1">
+          <nav className="flex items-center space-x-1 overflow-x-auto py-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  onClick={() => setActiveTab(tab.id as TabType)}
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all ${
                     isActive
                       ? 'bg-white text-black font-semibold shadow-sm'
                       : 'text-[#888892] hover:text-white hover:bg-[#141416]'

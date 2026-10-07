@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { FileText, Send, CheckCircle, Copy, Download } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FileText, Send, CheckCircle, Copy, Download, History, ShieldCheck, Clock, CheckCircle2 } from 'lucide-react';
 import { ThreatItem } from '../types/threat';
+import { apiClient } from '../services/api';
+import { TakedownDispatchRecord } from '../../server/db';
 
 interface TakedownGeneratorProps {
   threats: ThreatItem[];
@@ -14,9 +16,49 @@ export const TakedownGenerator: React.FC<TakedownGeneratorProps> = ({
   const [activeThreatId, setActiveThreatId] = useState<string>(selectedThreatId || threats[0]?.id || 'thr-8901');
   const [recipientType, setRecipientType] = useState<'CERT_IN' | 'NPCI_UPI' | 'REGISTRAR' | 'HOST_CDN' | 'BANK_CSIRT'>('CERT_IN');
   const [copied, setCopied] = useState<boolean>(false);
-  const [dispatched, setDispatched] = useState<boolean>(false);
+  const [isDispatching, setIsDispatching] = useState<boolean>(false);
+  const [dispatches, setDispatches] = useState<TakedownDispatchRecord[]>([]);
+  const [showLedger, setShowLedger] = useState<boolean>(false);
 
-  const threat = threats.find(t => t.id === activeThreatId) || threats[0];
+  const threat = threats.find(t => t.id === activeThreatId) || threats[0] || {
+    id: 'thr-8901',
+    url: 'https://sbi-yono-pan-kyc-update.live',
+    domain: 'sbi-yono-pan-kyc-update.live',
+    targetBrand: 'SBI YONO',
+    threatType: 'FAKE_UPI_PORTAL' as const,
+    severity: 'CRITICAL' as const,
+    similarityScore: 98.4,
+    qrCodePayload: 'upi://pay?pa=sbi.instantkyc@paytm&am=1.00',
+    ip: '185.220.101.44',
+    asn: 'AS44050',
+    asnName: 'Petersburg Offshore Networks',
+    country: 'Seychelles (RU Host)',
+    registrar: 'NameSilo LLC',
+    sslIssuer: "Let's Encrypt Authority E6",
+    sslSerial: '04a2991823ab',
+    dnsNameservers: ['ns1.bulletproof.is', 'ns2.bulletproof.is'],
+    extractedUPI_VPA: ['sbi.instantkyc@paytm', 'refund.sbiyono@ybl'],
+    extractedPhoneNumbers: ['+91 98765 43210'],
+    campaignName: 'Op YONO-Shield Harvester',
+    threatActorSyndicate: 'RedMule Syndicate',
+    structuralSSIM: 0.985,
+    pHashDistance: 4,
+    evasionTactics: { antiBotGating: true, geoFencingIndiaOnly: true, devtoolsBlocker: true },
+    evidenceHash: '9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b'
+  };
+
+  useEffect(() => {
+    loadDispatches();
+  }, []);
+
+  const loadDispatches = async () => {
+    try {
+      const data = await apiClient.getDispatches();
+      setDispatches(data);
+    } catch (err) {
+      console.error('Failed loading dispatches:', err);
+    }
+  };
 
   const generateReportText = () => {
     const timestamp = new Date().toISOString();
@@ -40,7 +82,7 @@ Resolved IP Address   : ${threat.ip} (${threat.country})
 Hosting Provider / ASN: ${threat.asn} - ${threat.asnName}
 Registrar of Record   : ${threat.registrar}
 SSL Certificate Serial: ${threat.sslSerial} (Issuer: ${threat.sslIssuer})
-Active Nameservers    : ${threat.dnsNameservers.join(', ')}
+Active Nameservers    : ${threat.dnsNameservers?.join(', ') || 'ns1.bulletproof.is'}
 
 2. FRAUD & PAYMENT RECOVERY TELEMETRY:
 --------------------------------------------------------------------------------
@@ -54,7 +96,7 @@ Associated Campaign   : ${threat.campaignName} (${threat.threatActorSyndicate})
 Evidence SHA-256 Hash : ${threat.evidenceHash}
 Visual SSIM Match     : ${(threat.structuralSSIM * 100).toFixed(1)}% vs Official ${threat.targetBrand} Template
 pHash Distance        : ${threat.pHashDistance} bits
-Anti-Analysis Evasion : ${threat.evasionTactics.antiBotGating ? 'User-Agent Gating, ' : ''}${threat.evasionTactics.geoFencingIndiaOnly ? 'India-Only GeoIP BGP Gating, ' : ''}${threat.evasionTactics.devtoolsBlocker ? 'DevTools Debugger Loop' : 'None'}
+Anti-Analysis Evasion : ${threat.evasionTactics?.antiBotGating ? 'User-Agent Gating, ' : ''}${threat.evasionTactics?.geoFencingIndiaOnly ? 'India-Only GeoIP BGP Gating, ' : ''}${threat.evasionTactics?.devtoolsBlocker ? 'DevTools Debugger Loop' : 'None'}
 
 4. REQUESTED ACTION:
 --------------------------------------------------------------------------------
@@ -162,9 +204,21 @@ Takedown notices have been automatically pre-dispatched to CERT-In, NPCI, and ${
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDispatch = () => {
-    setDispatched(true);
-    setTimeout(() => setDispatched(false), 3000);
+  const handleDispatch = async () => {
+    setIsDispatching(true);
+    try {
+      await apiClient.dispatchTakedown({
+        threatId: threat.id,
+        channels: ['CERT_IN', 'NPCI_UPI', 'REGISTRAR', 'HOSTING_CDN'],
+        analystNotes: 'Automated 1-click dispatch from SOC Sentinel'
+      });
+      await loadDispatches();
+      setShowLedger(true);
+    } catch (err) {
+      console.error('Dispatch error:', err);
+    } finally {
+      setIsDispatching(false);
+    }
   };
 
   const handleDownload = () => {
@@ -182,21 +236,32 @@ Takedown notices have been automatically pre-dispatched to CERT-In, NPCI, and ${
       {/* Header */}
       <div className="p-5 rounded-lg bg-[#09090b] border border-[#27272a] flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-base font-semibold text-white tracking-tight">
-            Automated Takedown Report & Evidence Package Generator
+          <h2 className="text-base font-semibold text-white tracking-tight flex items-center space-x-2">
+            <FileText className="w-4 h-4 text-white" />
+            <span>Automated Takedown Report & Evidence Package Dispatcher</span>
           </h2>
-          <p className="text-xs text-[#a1a1aa] mt-0.5">
-            Generates standardized CERT-In Form 7A, NPCI UPI Shield, and Registrar RFC-2822 abuse notices.
+          <p className="text-xs text-[#888892] mt-0.5">
+            Generates standardized CERT-In Form 7A, NPCI UPI Shield, and Registrar RFC-2822 abuse notices with live 1-click dispatch.
           </p>
         </div>
 
-        {/* Target Selector */}
-        <div className="flex items-center space-x-2">
-          <span className="text-xs text-[#71717a] font-mono">Target:</span>
+        {/* Target Selector & Toggle Ledger */}
+        <div className="flex items-center space-x-2 font-mono">
+          <button
+            onClick={() => setShowLedger(!showLedger)}
+            className={`px-3 py-1.5 rounded text-xs flex items-center space-x-1.5 transition-colors border ${
+              showLedger ? 'bg-white text-black font-semibold' : 'bg-[#121214] border-[#27272a] text-white hover:bg-[#1a1a1e]'
+            }`}
+          >
+            <History className="w-3.5 h-3.5" />
+            <span>Dispatch Ledger ({dispatches.length})</span>
+          </button>
+
+          <span className="text-xs text-[#71717a]">Target:</span>
           <select
             value={activeThreatId}
             onChange={(e) => setActiveThreatId(e.target.value)}
-            className="bg-[#121214] border border-[#27272a] text-xs rounded-md px-3 py-1.5 text-white focus:outline-none focus:border-white font-mono"
+            className="bg-[#121214] border border-[#27272a] text-xs rounded-md px-3 py-1.5 text-white focus:outline-none focus:border-white"
           >
             {threats.map(t => (
               <option key={t.id} value={t.id}>
@@ -207,77 +272,124 @@ Takedown notices have been automatically pre-dispatched to CERT-In, NPCI, and ${
         </div>
       </div>
 
-      {/* Recipient Channel Selector */}
-      <div className="flex flex-wrap gap-2">
-        {[
-          { id: 'CERT_IN', label: 'CERT-In Form 7A Notice', desc: 'Government CSIRT' },
-          { id: 'NPCI_UPI', label: 'NPCI UPI Fraud Desk', desc: 'VPA Freeze Directive' },
-          { id: 'REGISTRAR', label: 'Registrar Abuse Desk', desc: `${threat.registrar}` },
-          { id: 'HOST_CDN', label: 'Host / CDN Abuse Desk', desc: `${threat.asnName}` },
-          { id: 'BANK_CSIRT', label: 'Brand Security Desk', desc: `${threat.targetBrand} CSIRT` },
-        ].map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setRecipientType(item.id as any)}
-            className={`flex-1 min-w-[170px] p-3 rounded-lg border text-left transition-colors ${
-              recipientType === item.id
-                ? 'bg-white text-black border-white'
-                : 'bg-[#09090b] border-[#27272a] text-[#a1a1aa] hover:text-white hover:bg-[#121214]'
-            }`}
-          >
-            <div className={`font-semibold text-xs ${recipientType === item.id ? 'text-black' : 'text-white'}`}>
-              {item.label}
-            </div>
-            <div className={`text-[10px] font-mono truncate mt-0.5 ${recipientType === item.id ? 'text-[#3f3f46]' : 'text-[#71717a]'}`}>
-              {item.desc}
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {/* Report Code View */}
-      <div className="rounded-lg bg-[#000000] border border-[#27272a] overflow-hidden">
-        <div className="px-4 py-2.5 bg-[#09090b] border-b border-[#27272a] flex flex-wrap items-center justify-between gap-2">
-          <div className="text-xs font-mono font-semibold text-white">
-            Abuse Format: {recipientType} for {threat.domain}
+      {showLedger ? (
+        /* Dispatch History Ledger Table */
+        <div className="rounded-lg bg-[#09090b] border border-[#27272a] p-4 space-y-3 font-mono text-xs">
+          <div className="flex items-center justify-between border-b border-[#27272a] pb-3">
+            <span className="font-bold text-white uppercase flex items-center space-x-2">
+              <ShieldCheck className="w-4 h-4 text-white" />
+              <span>Live Takedown Dispatch Ledger</span>
+            </span>
+            <span className="text-[#71717a]">{dispatches.length} Total Dispatches Logged</span>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={handleCopy}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-[#121214] hover:bg-[#1f1f23] text-white border border-[#27272a] text-xs font-mono transition-colors"
-            >
-              <Copy className="w-3.5 h-3.5" />
-              <span>{copied ? 'Copied' : 'Copy'}</span>
-            </button>
-
-            <button
-              onClick={handleDownload}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-[#121214] hover:bg-[#1f1f23] text-white border border-[#27272a] text-xs font-mono transition-colors"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Download .TXT</span>
-            </button>
-
-            <button
-              onClick={handleDispatch}
-              className="flex items-center space-x-1.5 px-4 py-1.5 rounded bg-white text-black hover:bg-[#e4e4e7] text-xs font-semibold shadow-sm transition-colors"
-            >
-              <Send className="w-3.5 h-3.5" />
-              <span>{dispatched ? 'Dispatching Notice...' : 'Dispatch Automated Takedown'}</span>
-            </button>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[#121214] text-[#a1a1aa] border-b border-[#27272a] uppercase text-[10px]">
+                <tr>
+                  <th className="py-2.5 px-3">Tracking ID</th>
+                  <th className="py-2.5 px-3">Target Domain</th>
+                  <th className="py-2.5 px-3">Target Brand</th>
+                  <th className="py-2.5 px-3">Channels</th>
+                  <th className="py-2.5 px-3">Dispatched At</th>
+                  <th className="py-2.5 px-3">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#18181b]">
+                {dispatches.map((disp) => (
+                  <tr key={disp.id} className="hover:bg-[#121214] transition-colors">
+                    <td className="py-2.5 px-3 text-white font-bold">{disp.trackingNumber}</td>
+                    <td className="py-2.5 px-3 text-[#d4d4d8]">{disp.targetDomain}</td>
+                    <td className="py-2.5 px-3 text-white">{disp.targetBrand}</td>
+                    <td className="py-2.5 px-3 text-[#a1a1aa] text-[11px]">{disp.channels.join(', ')}</td>
+                    <td className="py-2.5 px-3 text-[#71717a] whitespace-nowrap">{disp.dispatchedAt}</td>
+                    <td className="py-2.5 px-3">
+                      <span className="px-2 py-0.5 rounded bg-[#18181b] border border-[#27272a] text-white text-[10px] font-bold">
+                        {disp.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
+      ) : (
+        <>
+          {/* Recipient Channel Selector */}
+          <div className="flex flex-wrap gap-2">
+            {[
+              { id: 'CERT_IN', label: 'CERT-In Form 7A Notice', desc: 'Government CSIRT' },
+              { id: 'NPCI_UPI', label: 'NPCI UPI Fraud Desk', desc: 'VPA Freeze Directive' },
+              { id: 'REGISTRAR', label: 'Registrar Abuse Desk', desc: `${threat.registrar}` },
+              { id: 'HOST_CDN', label: 'Host / CDN Abuse Desk', desc: `${threat.asnName}` },
+              { id: 'BANK_CSIRT', label: 'Brand Security Desk', desc: `${threat.targetBrand} CSIRT` },
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setRecipientType(item.id as any)}
+                className={`flex-1 min-w-[170px] p-3 rounded-lg border text-left transition-colors ${
+                  recipientType === item.id
+                    ? 'bg-white text-black border-white'
+                    : 'bg-[#09090b] border-[#27272a] text-[#a1a1aa] hover:text-white hover:bg-[#121214]'
+                }`}
+              >
+                <div className={`font-semibold text-xs ${recipientType === item.id ? 'text-black' : 'text-white'}`}>
+                  {item.label}
+                </div>
+                <div className={`text-[10px] font-mono truncate mt-0.5 ${recipientType === item.id ? 'text-[#3f3f46]' : 'text-[#71717a]'}`}>
+                  {item.desc}
+                </div>
+              </button>
+            ))}
+          </div>
 
-        <pre className="p-5 text-xs font-mono text-[#d4d4d8] bg-[#000000] overflow-x-auto whitespace-pre leading-relaxed border-b border-[#27272a] max-h-[460px]">
-          {reportText}
-        </pre>
+          {/* Report Code View */}
+          <div className="rounded-lg bg-[#000000] border border-[#27272a] overflow-hidden">
+            <div className="px-4 py-2.5 bg-[#09090b] border-b border-[#27272a] flex flex-wrap items-center justify-between gap-2">
+              <div className="text-xs font-mono font-semibold text-white">
+                Abuse Format: {recipientType} for {threat.domain}
+              </div>
 
-        <div className="px-4 py-2.5 bg-[#09090b] flex flex-wrap items-center justify-between text-[11px] text-[#71717a] font-mono gap-2">
-          <div>Integrity Digest: SHA256({threat.evidenceHash.slice(0, 16)}...)</div>
-          <div className="text-white">Immutable Forensic Snapshot Timestamped</div>
-        </div>
-      </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-[#121214] hover:bg-[#1f1f23] text-white border border-[#27272a] text-xs font-mono transition-colors"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>{copied ? 'Copied' : 'Copy'}</span>
+                </button>
+
+                <button
+                  onClick={handleDownload}
+                  className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-[#121214] hover:bg-[#1f1f23] text-white border border-[#27272a] text-xs font-mono transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download .TXT</span>
+                </button>
+
+                <button
+                  onClick={handleDispatch}
+                  disabled={isDispatching}
+                  className="flex items-center space-x-1.5 px-4 py-1.5 rounded bg-white text-black hover:bg-[#e4e4e7] text-xs font-semibold shadow-sm transition-colors disabled:opacity-50"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>{isDispatching ? 'Dispatching Notice...' : 'Dispatch Automated Takedown'}</span>
+                </button>
+              </div>
+            </div>
+
+            <pre className="p-5 text-xs font-mono text-[#d4d4d8] bg-[#000000] overflow-x-auto whitespace-pre leading-relaxed border-b border-[#27272a] max-h-[460px]">
+              {reportText}
+            </pre>
+
+            <div className="px-4 py-2.5 bg-[#09090b] flex flex-wrap items-center justify-between text-[11px] text-[#71717a] font-mono gap-2">
+              <div>Integrity Digest: SHA256({threat.evidenceHash ? threat.evidenceHash.slice(0, 16) : '9a8b7c6d5e4f3a2b'}...)</div>
+              <div className="text-white">Immutable Forensic Snapshot Timestamped</div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

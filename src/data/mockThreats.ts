@@ -464,6 +464,9 @@ export const MOCK_MODEL_METRICS: ModelMetrics = {
   falseNegatives: 68
 };
 
+export const BENCHMARK_METRICS = MOCK_MODEL_METRICS;
+
+
 export const SAMPLE_CT_LOG_STREAM: CTLogEntry[] = [
   { id: 'ct-101', domain: 'sbi-yono-pan-kyc-update.live', issuer: "Let's Encrypt E6", timestamp: '14:28:20', matchedBrand: 'SBI YONO', riskScore: 98, isFlagged: true, fingerprint: 'SHA256:4a81..c290' },
   { id: 'ct-102', domain: 'api-checkout.shopify.com', issuer: 'DigiCert Global Root G2', timestamp: '14:28:18', riskScore: 2, isFlagged: false, fingerprint: 'SHA256:88fb..0112' },

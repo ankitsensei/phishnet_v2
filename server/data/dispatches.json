@@ -1,0 +1,24 @@
+[
+  {
+    "id": "disp-8901",
+    "threatId": "thr-8901",
+    "targetDomain": "sbi-yono-pan-kyc-update.live",
+    "targetBrand": "SBI YONO",
+    "channels": [
+      "CERT-In Form 7A",
+      "NPCI UPI Shield",
+      "NameSilo Registrar Abuse"
+    ],
+    "dispatchedAt": "2026-10-07 11:54:53",
+    "dispatchedBy": "CSIRT SOC Analyst #042",
+    "status": "IN_PROCESS",
+    "trackingNumber": "CERTIN-2026-T3-8901",
+    "rfcNoticeExcerpt": "URGENT TAKEDOWN: Fraudulent SBI YONO Harvesting portal actively stealing MPIN & CVV.",
+    "evidenceSha256": "9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b",
+    "recipients": [
+      "incident@cert-in.org.in",
+      "fraud-ops@npci.org.in",
+      "abuse@namesilo.com"
+    ]
+  }
+]

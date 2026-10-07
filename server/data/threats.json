@@ -1,0 +1,392 @@
+[
+  {
+    "id": "thr-2171",
+    "url": "https://sbi-yono-pan-kyc-update.live/verify-account.php",
+    "domain": "sbi-yono-pan-kyc-update.live",
+    "targetBrand": "SBI YONO",
+    "threatType": "FAKE_UPI_PORTAL",
+    "discoverySource": "USER_REPORT",
+    "discoveryTimestamp": "2026-10-07 14:03:42",
+    "severity": "HIGH",
+    "status": "CONFIRMED_PHISH",
+    "similarityScore": 88.1,
+    "pHashDistance": 2,
+    "structuralSSIM": 0.987,
+    "domEditDistance": 0.03,
+    "logoConfidence": 95.4,
+    "ip": "185.220.101.44",
+    "asn": "AS44050",
+    "asnName": "Petersburg Offshore Networks",
+    "country": "Seychelles (RU Host)",
+    "countryCode": "SC",
+    "registrar": "NameSilo LLC",
+    "sslIssuer": "Let's Encrypt Authority E6",
+    "sslSerial": "04a2991823ab",
+    "dnsNameservers": [],
+    "extractedUPI_VPA": [
+      "sbiyono.instantkyc@paytm",
+      "refund.sbiyono@ybl"
+    ],
+    "extractedPhoneNumbers": [
+      "+91 98765 43210"
+    ],
+    "extractedBankAccounts": [
+      "SBI A/C: 30492819201 (IFSC: SBIN0001824)"
+    ],
+    "qrCodePayload": "upi://pay?pa=sbikyc.refund99@paytm&pn=SBI_KYC_VERIFICATION&am=1.00&cu=INR&tn=KYC_Activation_Refund",
+    "campaignId": "camp-yono-01",
+    "campaignName": "Paytm Instant Cashback Ring",
+    "threatActorSyndicate": "GoldenQR Cyber Group",
+    "evasionTactics": {
+      "antiBotGating": true,
+      "canvasFingerprinting": true,
+      "geoFencingIndiaOnly": true,
+      "userAgentFiltering": true,
+      "devtoolsBlocker": true,
+      "dynamicDomRedirection": true,
+      "fakeSslBadge": true
+    },
+    "screenshotUrl": "/assets/evidence/sbi_clone.webp",
+    "genuineReferenceUrl": "https://onlinesbi.sbi / sbiyono.sbi",
+    "evidenceHash": "e6f101bb3eec7e95db6737c909bcce7133ec1c07473471bd918f4d8156219bc6",
+    "timeline": [
+      {
+        "time": "19:33:42",
+        "event": "Source analyzed: detected 88.1% Fake probability",
+        "actor": "Autonomous Sentinel Engine"
+      }
+    ]
+  },
+  {
+    "id": "thr-8902",
+    "url": "https://phonepe-rewards-claim-5000.top/scratch-card.html",
+    "domain": "phonepe-rewards-claim-5000.top",
+    "targetBrand": "PhonePe",
+    "threatType": "FAKE_UPI_PORTAL",
+    "discoverySource": "SMS_STREAM",
+    "discoveryTimestamp": "2026-10-07 14:05:12",
+    "severity": "CRITICAL",
+    "status": "TAKEDOWN_DISPATCHED",
+    "similarityScore": 96.8,
+    "pHashDistance": 4,
+    "structuralSSIM": 0.945,
+    "domEditDistance": 0.08,
+    "logoConfidence": 98.4,
+    "ip": "104.21.49.182",
+    "asn": "AS13335",
+    "asnName": "Cloudflare, Inc.",
+    "country": "United States",
+    "countryCode": "US",
+    "registrar": "Hostinger Operations, UAB",
+    "sslIssuer": "Cloudflare Inc ECC CA-3",
+    "sslSerial": "039b81f9a2e8820c77",
+    "dnsNameservers": [
+      "dora.ns.cloudflare.com",
+      "walt.ns.cloudflare.com"
+    ],
+    "extractedUPI_VPA": [
+      "phonepe.reward.claim@axl",
+      "cashback.desk77@ibl"
+    ],
+    "extractedPhoneNumbers": [
+      "+91 70041 29841"
+    ],
+    "qrCodePayload": "upi://pay?pa=phonepe.reward.claim@axl&pn=PhonePe_Reward_Disbursement&am=4999.00&cu=INR&tn=Cashback_PIN_Confirm",
+    "campaignId": "camp-yono-01",
+    "campaignName": "Op YONO-Shield Harvester",
+    "threatActorSyndicate": "ShadowVPA Syndicate (Jamtara-NCR Cell)",
+    "evasionTactics": {
+      "antiBotGating": true,
+      "canvasFingerprinting": false,
+      "geoFencingIndiaOnly": true,
+      "userAgentFiltering": true,
+      "devtoolsBlocker": true,
+      "dynamicDomRedirection": false,
+      "fakeSslBadge": true
+    },
+    "screenshotUrl": "/assets/evidence/phonepe_clone.webp",
+    "genuineReferenceUrl": "https://www.phonepe.com",
+    "evidenceHash": "c7d2194b8e010a34589dff52981ac288b50e4177d2948bf8238120bba5e917d0",
+    "timeline": [
+      {
+        "time": "14:05:12",
+        "event": "Lure SMS received: \"Congrats! ₹4,999 cashback credited in PhonePe. Claim now...\"",
+        "actor": "SMS Stream Parser"
+      },
+      {
+        "time": "14:05:18",
+        "event": "Simulated UPI Scratch card layout analyzed; fake PIN-harvesting modal found",
+        "actor": "Behavioural Engine"
+      },
+      {
+        "time": "14:06:00",
+        "event": "Automated CERT-In & Cloudflare Abuse takedown notices dispatched",
+        "actor": "Auto Takedown Robot"
+      }
+    ]
+  },
+  {
+    "id": "thr-8903",
+    "url": "https://paytm-kyc-unblock-portal.in/login",
+    "domain": "paytm-kyc-unblock-portal.in",
+    "targetBrand": "Paytm",
+    "threatType": "FAKE_PAYMENT_GATEWAY",
+    "discoverySource": "USER_REPORT",
+    "discoveryTimestamp": "2026-10-07 13:42:10",
+    "severity": "HIGH",
+    "status": "CONFIRMED_PHISH",
+    "similarityScore": 94.2,
+    "pHashDistance": 6,
+    "structuralSSIM": 0.918,
+    "domEditDistance": 0.11,
+    "logoConfidence": 96.7,
+    "ip": "194.38.20.71",
+    "asn": "AS49870",
+    "asnName": "Alavisa Host BG",
+    "country": "Bulgaria",
+    "countryCode": "BG",
+    "registrar": "PublicDomainRegistry",
+    "sslIssuer": "ZeroSSL RSA Domain Secure",
+    "sslSerial": "08129fa901248ccb",
+    "dnsNameservers": [
+      "dns1.paytm-fastdns.org",
+      "dns2.paytm-fastdns.org"
+    ],
+    "extractedUPI_VPA": [
+      "paytmkyc.desk@paytm",
+      "refundmerch.hub@ybl"
+    ],
+    "extractedPhoneNumbers": [
+      "+91 91234 56789"
+    ],
+    "extractedBankAccounts": [
+      "Paytm Payments Bank: 919876543210"
+    ],
+    "campaignId": "camp-paytm-refund",
+    "campaignName": "Paytm Instant Cashback Ring",
+    "threatActorSyndicate": "GoldenQR Cyber Group",
+    "evasionTactics": {
+      "antiBotGating": true,
+      "canvasFingerprinting": true,
+      "geoFencingIndiaOnly": true,
+      "userAgentFiltering": true,
+      "devtoolsBlocker": false,
+      "dynamicDomRedirection": true,
+      "fakeSslBadge": true
+    },
+    "screenshotUrl": "/assets/evidence/paytm_clone.webp",
+    "genuineReferenceUrl": "https://paytm.com",
+    "evidenceHash": "b45f91e847c20a1128394857d938210495867182903847561928374650192837",
+    "timeline": [
+      {
+        "time": "13:42:10",
+        "event": "Bank Security Desk relayed suspicious domain flagged by victim",
+        "actor": "Bank CSIRT"
+      },
+      {
+        "time": "13:42:25",
+        "event": "Visual fingerprinting matched Paytm merchant portal 94.2%",
+        "actor": "Visual Engine"
+      },
+      {
+        "time": "13:43:00",
+        "event": "Linked to GoldenQR Campaign IP 194.38.20.71",
+        "actor": "Campaign Graph"
+      }
+    ]
+  },
+  {
+    "id": "thr-8904",
+    "url": "https://download-yono-sbi-v4.apk.store/files/SBI_Yono_Update.apk",
+    "domain": "download-yono-sbi-v4.apk.store",
+    "targetBrand": "SBI YONO",
+    "threatType": "MALICIOUS_APK",
+    "discoverySource": "BANK_CSIRT_INTEL",
+    "discoveryTimestamp": "2026-10-07 13:10:00",
+    "severity": "CRITICAL",
+    "status": "INVESTIGATING",
+    "similarityScore": 99.2,
+    "pHashDistance": 2,
+    "structuralSSIM": 0.985,
+    "domEditDistance": 0.02,
+    "logoConfidence": 99.5,
+    "ip": "45.142.214.99",
+    "asn": "AS200000",
+    "asnName": "CyberShield Bulletproof NV",
+    "country": "Panama",
+    "countryCode": "PA",
+    "registrar": "Tucows Domains Inc.",
+    "sslIssuer": "Let's Encrypt Authority E6",
+    "sslSerial": "0198273645bbfa90",
+    "dnsNameservers": [
+      "ns1.panama-secure.is",
+      "ns2.panama-secure.is"
+    ],
+    "apkPackageName": "com.sbi.lotusapply.banking",
+    "apkSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "extractedUPI_VPA": [
+      "sbiapp.mule01@axl"
+    ],
+    "extractedPhoneNumbers": [
+      "+91 80112 34567"
+    ],
+    "campaignId": "camp-yono-01",
+    "campaignName": "Op YONO-Shield Harvester",
+    "threatActorSyndicate": "ShadowVPA Syndicate (Jamtara-NCR Cell)",
+    "evasionTactics": {
+      "antiBotGating": true,
+      "canvasFingerprinting": true,
+      "geoFencingIndiaOnly": false,
+      "userAgentFiltering": true,
+      "devtoolsBlocker": true,
+      "dynamicDomRedirection": true,
+      "fakeSslBadge": false
+    },
+    "screenshotUrl": "/assets/evidence/apk_clone.webp",
+    "genuineReferenceUrl": "https://play.google.com/store/apps/details?id=com.sbi.lotusapply",
+    "evidenceHash": "739281a9bc382740918237465928374659283746592837465928374659283746",
+    "timeline": [
+      {
+        "time": "13:10:00",
+        "event": "Malware dropper APK discovered hosted on off-shore domain",
+        "actor": "APK Scanner"
+      },
+      {
+        "time": "13:10:15",
+        "event": "Static Analysis: Found RECEIVE_SMS, READ_PHONE_STATE, BIND_ACCESSIBILITY_SERVICE",
+        "actor": "Sandbox Pipeline"
+      },
+      {
+        "time": "13:10:30",
+        "event": "Detected UPI Intent hijacker hook for upi://pay and C2 endpoint",
+        "actor": "Static Analyzer"
+      }
+    ]
+  },
+  {
+    "id": "thr-8905",
+    "url": "https://gpay-scratch-voucher-999.in/redeem",
+    "domain": "gpay-scratch-voucher-999.in",
+    "targetBrand": "Google Pay",
+    "threatType": "QR_PHISHING",
+    "discoverySource": "SMS_STREAM",
+    "discoveryTimestamp": "2026-10-07 12:45:00",
+    "severity": "HIGH",
+    "status": "CONFIRMED_PHISH",
+    "similarityScore": 92.5,
+    "pHashDistance": 7,
+    "structuralSSIM": 0.901,
+    "domEditDistance": 0.12,
+    "logoConfidence": 95.2,
+    "ip": "104.21.49.182",
+    "asn": "AS13335",
+    "asnName": "Cloudflare, Inc.",
+    "country": "United States",
+    "countryCode": "US",
+    "registrar": "BigRock Solutions Ltd",
+    "sslIssuer": "Cloudflare Inc ECC CA-3",
+    "sslSerial": "059a8820c81249b",
+    "dnsNameservers": [
+      "curt.ns.cloudflare.com",
+      "lola.ns.cloudflare.com"
+    ],
+    "extractedUPI_VPA": [
+      "gpayvoucher.win@okaxis",
+      "claim.gpayreward@oksbi"
+    ],
+    "qrCodePayload": "upi://pay?pa=gpayvoucher.win@okaxis&pn=GPay_Cashback_Reward&am=2499.00&cu=INR&tn=Reward_Claim_Verification",
+    "campaignId": "camp-paytm-refund",
+    "campaignName": "Paytm Instant Cashback Ring",
+    "threatActorSyndicate": "GoldenQR Cyber Group",
+    "evasionTactics": {
+      "antiBotGating": true,
+      "canvasFingerprinting": false,
+      "geoFencingIndiaOnly": true,
+      "userAgentFiltering": true,
+      "devtoolsBlocker": false,
+      "dynamicDomRedirection": false,
+      "fakeSslBadge": true
+    },
+    "screenshotUrl": "/assets/evidence/gpay_clone.webp",
+    "genuineReferenceUrl": "https://pay.google.com/intl/en_in/about/",
+    "evidenceHash": "5928374610293847561029384756102938475610293847561029384756102938",
+    "timeline": [
+      {
+        "time": "12:45:00",
+        "event": "Smishing SMS alert decoded containing QR voucher redirect",
+        "actor": "SMS Parser"
+      },
+      {
+        "time": "12:45:10",
+        "event": "QR code payload contains malicious merchant debit VPA",
+        "actor": "QR Analyzer"
+      }
+    ]
+  },
+  {
+    "id": "thr-8906",
+    "url": "https://hdfc-netbanking-session-restore.info/ebank/login",
+    "domain": "hdfc-netbanking-session-restore.info",
+    "targetBrand": "HDFC Bank",
+    "threatType": "FAKE_PAYMENT_GATEWAY",
+    "discoverySource": "CT_LOGS",
+    "discoveryTimestamp": "2026-10-07 12:15:20",
+    "severity": "HIGH",
+    "status": "TAKEN_DOWN",
+    "similarityScore": 97.1,
+    "pHashDistance": 4,
+    "structuralSSIM": 0.954,
+    "domEditDistance": 0.05,
+    "logoConfidence": 98.9,
+    "ip": "185.196.8.12",
+    "asn": "AS57523",
+    "asnName": "Chang Way Technologies Co.",
+    "country": "Hong Kong",
+    "countryCode": "HK",
+    "registrar": "Dynadot Inc",
+    "sslIssuer": "Let's Encrypt Authority E6",
+    "sslSerial": "0281749102848102",
+    "dnsNameservers": [
+      "ns1.dynadot.com",
+      "ns2.dynadot.com"
+    ],
+    "extractedUPI_VPA": [
+      "hdfcsecure.auth@ybl"
+    ],
+    "extractedPhoneNumbers": [
+      "+91 99887 76655"
+    ],
+    "campaignId": "camp-hdfc-kyc",
+    "campaignName": "HDFC NetBanking Credential Grabber",
+    "threatActorSyndicate": "MuleMatrix Network",
+    "evasionTactics": {
+      "antiBotGating": true,
+      "canvasFingerprinting": true,
+      "geoFencingIndiaOnly": true,
+      "userAgentFiltering": true,
+      "devtoolsBlocker": true,
+      "dynamicDomRedirection": true,
+      "fakeSslBadge": true
+    },
+    "screenshotUrl": "/assets/evidence/hdfc_clone.webp",
+    "genuineReferenceUrl": "https://netbanking.hdfcbank.com",
+    "evidenceHash": "8472910485720193847501928374650192837465019283746501928374650192",
+    "timeline": [
+      {
+        "time": "12:15:20",
+        "event": "CT Log emitted domain registration",
+        "actor": "CT Stream"
+      },
+      {
+        "time": "12:17:00",
+        "event": "Takedown notice received by Dynadot Abuse & DNS suspended",
+        "actor": "Registrar API"
+      },
+      {
+        "time": "12:20:00",
+        "event": "Domain confirmed offline (NXDOMAIN). Marked as TAKEN_DOWN.",
+        "actor": "Health Checker"
+      }
+    ]
+  }
+]

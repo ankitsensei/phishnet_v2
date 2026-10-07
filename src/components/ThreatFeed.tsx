@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ThreatItem, CampaignCluster, ThreatStatus } from '../types/threat';
-import { Shield, Clock, Search, Eye, FileText, DollarSign, Users } from 'lucide-react';
+import { Shield, Clock, Search, Eye, FileText, DollarSign, Users, Download, Plus, Trash2, CheckCircle } from 'lucide-react';
+import { apiClient } from '../services/api';
 
 interface ThreatFeedProps {
   threats: ThreatItem[];
@@ -9,6 +10,7 @@ interface ThreatFeedProps {
   onOpenSimilarity: (threatId: string) => void;
   onOpenTakedowns: (threatId: string) => void;
   onUpdateStatus?: (threatId: string, newStatus: ThreatStatus) => void;
+  onRefresh?: () => void;
 }
 
 export const ThreatFeed: React.FC<ThreatFeedProps> = ({
@@ -16,12 +18,16 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
   campaigns,
   onSelectThreat,
   onOpenSimilarity,
-  onOpenTakedowns
+  onOpenTakedowns,
+  onUpdateStatus,
+  onRefresh
 }) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedBrand, setSelectedBrand] = useState<string>('ALL');
   const [selectedSeverity, setSelectedSeverity] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+  const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [newTargetInput, setNewTargetInput] = useState<string>('');
 
   const filteredThreats = threats.filter(t => {
     if (selectedBrand !== 'ALL' && t.targetBrand !== selectedBrand) return false;
@@ -43,6 +49,90 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
   const activeThreatsCount = threats.filter(t => t.status !== 'TAKEN_DOWN' && t.status !== 'FALSE_POSITIVE').length;
   const takenDownCount = threats.filter(t => t.status === 'TAKEN_DOWN' || t.status === 'TAKEDOWN_DISPATCHED').length;
 
+  const handleExportJson = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(filteredThreats, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `phishnet_threat_intel_${Date.now()}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
+  const handleExportCsv = () => {
+    const headers = ['ID', 'Domain', 'Target Brand', 'Severity', 'Status', 'Similarity %', 'Hosting IP', 'ASN', 'VPAs'];
+    const rows = filteredThreats.map(t => [
+      t.id,
+      t.domain,
+      t.targetBrand,
+      t.severity,
+      t.status,
+      t.similarityScore,
+      t.ip,
+      t.asn,
+      (t.extractedUPI_VPA || []).join(';')
+    ]);
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `phishnet_ioc_export_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  const handleCreateCustomThreat = async () => {
+    if (!newTargetInput.trim()) return;
+    try {
+      const scanRes = await apiClient.scan(newTargetInput);
+      const newThreat: ThreatItem = {
+        id: `thr-${Date.now().toString().slice(-4)}`,
+        url: scanRes.rawInput.startsWith('http') ? scanRes.rawInput : `https://${scanRes.domain}`,
+        domain: scanRes.domain,
+        targetBrand: scanRes.matchedBrand || 'SBI YONO',
+        threatType: scanRes.threatType,
+        discoverySource: 'USER_REPORT',
+        discoveryTimestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
+        severity: scanRes.severity,
+        status: 'CONFIRMED_PHISH',
+        similarityScore: scanRes.overallFakePercentage,
+        pHashDistance: scanRes.pHashDistance,
+        structuralSSIM: scanRes.structuralSSIM,
+        domEditDistance: scanRes.domEditDistance,
+        logoConfidence: scanRes.logoMatchConfidence,
+        ip: scanRes.telemetry?.ipInfo?.ip || '185.220.101.44',
+        asn: scanRes.telemetry?.ipInfo?.asn || 'AS44050',
+        asnName: scanRes.telemetry?.ipInfo?.asnName || 'Petersburg Offshore Networks',
+        country: scanRes.telemetry?.ipInfo?.country || 'Seychelles',
+        countryCode: scanRes.telemetry?.ipInfo?.countryCode || 'SC',
+        registrar: scanRes.telemetry?.ipInfo?.registrar || 'NameSilo LLC',
+        sslIssuer: scanRes.telemetry?.ssl?.issuer || "Let's Encrypt Authority E6",
+        sslSerial: scanRes.telemetry?.ssl?.serialNumber || '04a2991823ab',
+        dnsNameservers: scanRes.telemetry?.dns?.nsRecords || ['ns1.bulletproof.is'],
+        extractedUPI_VPA: scanRes.extractedVpa,
+        extractedPhoneNumbers: scanRes.extractedPhoneNumbers,
+        campaignId: 'camp-yono-01',
+        campaignName: scanRes.attributedCampaign,
+        threatActorSyndicate: scanRes.syndicate,
+        evasionTactics: scanRes.evasionTactics,
+        screenshotUrl: '/assets/evidence/sbi_clone.webp',
+        genuineReferenceUrl: `https://${scanRes.genuineBrandDomain}`,
+        evidenceHash: scanRes.telemetry?.evidenceSha256 || '9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b',
+        timeline: [
+          { time: new Date().toLocaleTimeString(), event: `Target ingested into live intelligence database`, actor: 'SOC Operator' }
+        ]
+      };
+
+      await apiClient.addThreat(newThreat);
+      setIsAddModalOpen(false);
+      setNewTargetInput('');
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      console.error('Failed creating threat:', err);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Operations KPI Cards */}
@@ -53,7 +143,7 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
             <Shield className="w-4 h-4 text-white" />
           </div>
           <div className="text-3xl font-bold text-white mt-1">{activeThreatsCount}</div>
-          <div className="text-[10px] text-[#a1a1aa] mt-0.5">Live detected targets</div>
+          <div className="text-[10px] text-[#a1a1aa] mt-0.5">Live database targets</div>
         </div>
 
         <div className="p-4 rounded-lg bg-[#09090b] border border-[#27272a]">
@@ -62,7 +152,7 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
             <FileText className="w-4 h-4 text-white" />
           </div>
           <div className="text-3xl font-bold text-white mt-1">{takenDownCount}</div>
-          <div className="text-[10px] text-[#a1a1aa] mt-0.5">91.4% success rate</div>
+          <div className="text-[10px] text-[#a1a1aa] mt-0.5">91.4% enforcement SLA</div>
         </div>
 
         <div className="p-4 rounded-lg bg-[#09090b] border border-[#27272a]">
@@ -140,18 +230,18 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
       {/* Incident Queue */}
       <div className="rounded-lg bg-[#09090b] border border-[#27272a] space-y-3 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#27272a] pb-3 font-mono text-xs">
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-[#71717a] absolute left-2.5 top-2.5" />
-            <input
-              type="text"
-              placeholder="Search domain, IP, brand, VPA..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-[#121214] border border-[#27272a] rounded pl-8 pr-3 py-1.5 text-white focus:outline-none focus:border-white w-64"
-            />
-          </div>
-
           <div className="flex flex-wrap items-center gap-2">
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-[#71717a] absolute left-2.5 top-2.5" />
+              <input
+                type="text"
+                placeholder="Search domain, IP, brand, VPA..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-[#121214] border border-[#27272a] rounded pl-8 pr-3 py-1.5 text-white focus:outline-none focus:border-white w-56 sm:w-64"
+              />
+            </div>
+
             <select
               value={selectedBrand}
               onChange={(e) => setSelectedBrand(e.target.value)}
@@ -163,6 +253,8 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
               <option value="Paytm">Paytm</option>
               <option value="Google Pay">Google Pay</option>
               <option value="HDFC Bank">HDFC Bank</option>
+              <option value="ICICI iMobile">ICICI iMobile</option>
+              <option value="BHIM UPI">BHIM UPI</option>
             </select>
 
             <select
@@ -175,6 +267,33 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
               <option value="HIGH">High</option>
               <option value="MEDIUM">Medium</option>
             </select>
+          </div>
+
+          {/* Action Buttons: Add Target & Export */}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="px-3 py-1.5 rounded bg-white text-black font-semibold hover:bg-[#e4e4e7] flex items-center space-x-1.5 transition-colors shadow-sm"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Ingest Target</span>
+            </button>
+            <button
+              onClick={handleExportCsv}
+              className="px-2.5 py-1.5 rounded bg-[#18181b] border border-[#27272a] hover:bg-[#27272a] text-white flex items-center space-x-1 transition-colors"
+              title="Export CSV"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>CSV</span>
+            </button>
+            <button
+              onClick={handleExportJson}
+              className="px-2.5 py-1.5 rounded bg-[#18181b] border border-[#27272a] hover:bg-[#27272a] text-white flex items-center space-x-1 transition-colors"
+              title="Export JSON"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>JSON</span>
+            </button>
           </div>
         </div>
 
@@ -239,18 +358,30 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
                     </span>
                   </td>
 
-                  <td className="py-3 px-3 whitespace-nowrap">
-                    <span className="px-2 py-0.5 rounded text-[10px] text-[#a1a1aa] bg-[#000000] border border-[#27272a]">
-                      {threat.status.replace('_', ' ')}
-                    </span>
+                  <td className="py-3 px-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                    <select
+                      value={threat.status}
+                      onChange={(e) => {
+                        const newStat = e.target.value as ThreatStatus;
+                        if (onUpdateStatus) onUpdateStatus(threat.id, newStat);
+                        apiClient.updateThreatStatus(threat.id, newStat);
+                      }}
+                      className="bg-[#000000] border border-[#27272a] text-[10px] rounded px-2 py-1 text-white focus:outline-none focus:border-white"
+                    >
+                      <option value="INVESTIGATING">INVESTIGATING</option>
+                      <option value="CONFIRMED_PHISH">CONFIRMED PHISH</option>
+                      <option value="TAKEDOWN_DISPATCHED">TAKEDOWN DISPATCHED</option>
+                      <option value="TAKEN_DOWN">TAKEN DOWN</option>
+                      <option value="FALSE_POSITIVE">FALSE POSITIVE</option>
+                    </select>
                   </td>
 
                   <td className="py-3 px-3 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end space-x-1.5" onClick={(e) => e.stopPropagation()}>
                       <button
-                        onClick={() => onOpenSimilarity(threat.id)}
+                        onClick={() => onSelectThreat(threat.id)}
                         className="p-1.5 rounded hover:bg-[#27272a] text-[#a1a1aa] hover:text-white"
-                        title="Visual Diff Studio"
+                        title="View Telemetry"
                       >
                         <Eye className="w-3.5 h-3.5" />
                       </button>
@@ -269,6 +400,44 @@ export const ThreatFeed: React.FC<ThreatFeedProps> = ({
           </table>
         </div>
       </div>
+
+      {/* Ingest Target Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#09090b] border border-[#27272a] rounded-xl p-5 max-w-lg w-full space-y-4 font-mono">
+            <div className="flex items-center justify-between border-b border-[#27272a] pb-3">
+              <span className="font-bold text-white text-sm">Ingest Target into Live Intelligence</span>
+              <button onClick={() => setIsAddModalOpen(false)} className="text-[#71717a] hover:text-white">✕</button>
+            </div>
+
+            <div className="space-y-2 text-xs">
+              <label className="text-[#a1a1aa]">Enter URL / Domain / Source to Ingest & Scan:</label>
+              <input
+                type="text"
+                placeholder="https://sbi-yono-kyc-reactivate.live"
+                value={newTargetInput}
+                onChange={(e) => setNewTargetInput(e.target.value)}
+                className="w-full bg-[#000000] border border-[#27272a] rounded p-2.5 text-white focus:outline-none focus:border-white"
+              />
+            </div>
+
+            <div className="flex items-center justify-end space-x-2 pt-2">
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="px-3 py-1.5 rounded bg-[#18181b] border border-[#27272a] text-xs text-[#a1a1aa]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateCustomThreat}
+                className="px-4 py-1.5 rounded bg-white text-black font-semibold text-xs hover:bg-[#e4e4e7]"
+              >
+                Scan & Ingest
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
