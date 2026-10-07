@@ -1,12 +1,66 @@
 [
   {
-    "id": "thr-5763",
+    "id": "thr-8952",
+    "url": "https://[Image Screenshot]: SCR-20260929-swha.png",
+    "domain": "[Image Screenshot]: SCR-20260929-swha.png",
+    "targetBrand": "SBI YONO",
+    "threatType": "FAKE_UPI_PORTAL",
+    "discoverySource": "USER_REPORT",
+    "discoveryTimestamp": "2026-10-07 16:28:28",
+    "severity": "HIGH",
+    "status": "CONFIRMED_PHISH",
+    "similarityScore": 83.1,
+    "pHashDistance": 2,
+    "structuralSSIM": 0.987,
+    "domEditDistance": 0.03,
+    "logoConfidence": 95.4,
+    "ip": "185.220.101.44",
+    "asn": "AS44050",
+    "asnName": "Petersburg Offshore Networks",
+    "country": "Seychelles (RU Host)",
+    "countryCode": "SC",
+    "registrar": "NameSilo LLC",
+    "sslIssuer": "Let's Encrypt Authority E6",
+    "sslSerial": "04a2991823ab",
+    "dnsNameservers": [],
+    "extractedUPI_VPA": [
+      "sbiyono.instantkyc@paytm",
+      "refund.sbiyono@ybl"
+    ],
+    "extractedPhoneNumbers": [
+      "+91 98765 43210"
+    ],
+    "campaignId": "camp-yono-01",
+    "campaignName": "HDFC NetBanking Credential Grabber",
+    "threatActorSyndicate": "MuleMatrix Network",
+    "evasionTactics": {
+      "antiBotGating": true,
+      "canvasFingerprinting": true,
+      "geoFencingIndiaOnly": true,
+      "userAgentFiltering": true,
+      "devtoolsBlocker": true,
+      "dynamicDomRedirection": true,
+      "fakeSslBadge": true
+    },
+    "screenshotUrl": "/assets/evidence/sbi_clone.webp",
+    "genuineReferenceUrl": "https://onlinesbi.sbi / sbiyono.sbi",
+    "evidenceHash": "1c664d18a65aca35cf790ac60292bb85edf4653265e1778073df352253f1514c",
+    "timeline": [
+      {
+        "time": "21:58:28",
+        "event": "Source analyzed: detected 83.1% Fake probability",
+        "actor": "Autonomous Sentinel Engine"
+      }
+    ]
+  },
+  {
+    "id": "thr-6077",
     "url": "https://sbi-yono-pan-kyc-update.live/verify-account.php",
     "domain": "sbi-yono-pan-kyc-update.live",
     "targetBrand": "SBI YONO",
     "threatType": "FAKE_UPI_PORTAL",
     "discoverySource": "USER_REPORT",
-    "discoveryTimestamp": "2026-10-07 16:06:35",
+    "discoveryTimestamp": "2026-10-07 16:29:06",
     "severity": "HIGH",
     "status": "CONFIRMED_PHISH",
     "similarityScore": 88.1,
@@ -35,8 +89,8 @@
     ],
     "qrCodePayload": "upi://pay?pa=sbikyc.refund99@paytm&pn=SBI_KYC_VERIFICATION&am=1.00&cu=INR&tn=KYC_Activation_Refund",
     "campaignId": "camp-yono-01",
-    "campaignName": "Paytm Instant Cashback Ring",
-    "threatActorSyndicate": "GoldenQR Cyber Group",
+    "campaignName": "BHIM-Shield Dropper Trojan (APK)",
+    "threatActorSyndicate": "AndroidStealer-IN",
     "evasionTactics": {
       "antiBotGating": true,
       "canvasFingerprinting": true,
@@ -48,10 +102,10 @@
     },
     "screenshotUrl": "/assets/evidence/sbi_clone.webp",
     "genuineReferenceUrl": "https://onlinesbi.sbi / sbiyono.sbi",
-    "evidenceHash": "374c8c3e4ae2ef6c06d1ecd679834406e5da511f2b6af82bced1157cc8d6793a",
+    "evidenceHash": "c3c2674d8433f7ceb2cd20e0c8268c6f9d7201330b11025d601f3d44d82f01c3",
     "timeline": [
       {
-        "time": "21:36:35",
+        "time": "21:59:06",
         "event": "Source analyzed: detected 88.1% Fake probability",
         "actor": "Autonomous Sentinel Engine"
       }
