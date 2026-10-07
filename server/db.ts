@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { ThreatItem, CampaignCluster, GraphNode, GraphLink, ModelMetrics, ThreatStatus } from '../src/types/threat';
 import { INITIAL_THREATS, INITIAL_CAMPAIGNS, MOCK_GRAPH_DATA, BENCHMARK_METRICS } from '../src/data/mockThreats';
+import { pgStore } from './pgDb';
 
 const DATA_DIR = path.join(process.cwd(), 'server', 'data');
 const THREATS_FILE = path.join(DATA_DIR, 'threats.json');
@@ -114,11 +115,13 @@ class StorageEngine {
     if (existingIndex >= 0) {
       this.threats[existingIndex] = { ...this.threats[existingIndex], ...threat };
       this.saveThreats();
+      pgStore.saveThreat(this.threats[existingIndex]).catch(() => {});
       return this.threats[existingIndex];
     }
 
     this.threats.unshift(threat);
     this.saveThreats();
+    pgStore.saveThreat(threat).catch(() => {});
 
     // Auto-update graph with new nodes
     this.syncGraphWithThreat(threat);
@@ -136,6 +139,7 @@ class StorageEngine {
       actor: 'SOC Lead Analyst'
     });
     this.saveThreats();
+    pgStore.updateStatus(id, status).catch(() => {});
     return threat;
   }
 
@@ -228,6 +232,7 @@ class StorageEngine {
   public recordDispatch(dispatch: TakedownDispatchRecord): TakedownDispatchRecord {
     this.dispatches.unshift(dispatch);
     this.saveDispatches();
+    pgStore.saveDispatch(dispatch).catch(() => {});
 
     // Mark corresponding threat as TAKEDOWN_DISPATCHED
     this.updateThreatStatus(dispatch.threatId, 'TAKEDOWN_DISPATCHED');

@@ -1,7 +1,7 @@
 import React from 'react';
-import { Shield, Search, List, Network, FileText, BarChart2, Smartphone, Radio, Eye } from 'lucide-react';
+import { Shield, Search, List, Smartphone, Eye, FileText, BarChart3 } from 'lucide-react';
 
-export type TabType = 'detector' | 'similarity' | 'apk' | 'ctstream' | 'threats' | 'graph' | 'takedowns' | 'benchmarks';
+export type TabType = 'detector' | 'apk' | 'similarity' | 'threats' | 'takedowns' | 'benchmarks';
 
 interface NavbarProps {
   activeTab: TabType;
@@ -15,14 +15,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   threatCount
 }) => {
   const tabs = [
-    { id: 'detector', label: 'Threat Scanner', icon: Search },
-    { id: 'similarity', label: 'Visual Studio', icon: Eye },
-    { id: 'apk', label: 'APK Lab', icon: Smartphone },
-    { id: 'ctstream', label: 'CT Stream', icon: Radio },
-    { id: 'threats', label: 'Threat Feed', icon: List, badge: `${threatCount}` },
-    { id: 'graph', label: 'Campaign Graph', icon: Network },
-    { id: 'takedowns', label: 'Takedowns', icon: FileText },
-    { id: 'benchmarks', label: 'ML Metrics', icon: BarChart2 },
+    { id: 'detector', label: 'Threat Scanner', icon: Search, desc: 'URL, SMS & File Ingestion' },
+    { id: 'apk', label: 'APK Malice Lab', icon: Smartphone, desc: 'Android App Inspector' },
+    { id: 'similarity', label: 'Visual Comparison', icon: Eye, desc: 'Fake Page Clone Diff' },
+    { id: 'threats', label: 'Threat Feed', icon: List, badge: `${threatCount}`, desc: 'Active Incident Queue' },
+    { id: 'takedowns', label: 'Takedowns', icon: FileText, desc: 'CERT-In & NPCI Notices' },
+    { id: 'benchmarks', label: 'Benchmarks', icon: BarChart3, desc: 'Model Performance' },
   ] as const;
 
   return (
@@ -34,7 +32,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="flex items-center space-x-3 cursor-pointer select-none"
             onClick={() => setActiveTab('detector')}
           >
-            <div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center shadow-sm">
+            <div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center shadow-xs">
               <Shield className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -46,12 +44,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                   v2.0
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 font-medium">Fake UPI & App Detection Engine</p>
+              <p className="text-[11px] text-slate-500 font-medium">Fake UPI & Payment Fraud Defense</p>
             </div>
           </div>
 
           {/* Navigation Tabs */}
-          <nav className="flex items-center space-x-1 overflow-x-auto py-1">
+          <nav className="flex items-center space-x-1.5 overflow-x-auto py-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -59,7 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as TabType)}
-                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
                     isActive
                       ? 'bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200 shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -68,7 +66,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-indigo-600' : 'text-slate-500'}`} />
                   <span>{tab.label}</span>
                   {'badge' in tab && tab.badge && (
-                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-semibold ${
+                    <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full font-semibold ${
                       isActive ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-700'
                     }`}>
                       {tab.badge}
@@ -83,4 +81,3 @@ export const Navbar: React.FC<NavbarProps> = ({
     </header>
   );
 };
-

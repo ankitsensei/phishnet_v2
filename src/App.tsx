@@ -176,17 +176,13 @@ export function App() {
           />
         )}
 
+        {activeTab === "apk" && <ApkAnalyzer />}
+
         {activeTab === "similarity" && (
           <VisualSimilarityInspector
             threats={threats}
             selectedThreatId={selectedThreatId}
           />
-        )}
-
-        {activeTab === "apk" && <ApkAnalyzer />}
-
-        {activeTab === "ctstream" && (
-          <CTLogStreamer onInspectDomain={handleInspectDomainFromCT} />
         )}
 
         {activeTab === "threats" && (
@@ -198,15 +194,6 @@ export function App() {
             onOpenTakedowns={handleOpenTakedowns}
             onUpdateStatus={handleUpdateStatus}
             onRefresh={loadData}
-          />
-        )}
-
-        {activeTab === "graph" && (
-          <CampaignGraph
-            nodes={graphData.nodes}
-            links={graphData.links}
-            campaigns={campaigns}
-            onSelectThreat={handleSelectThreat}
           />
         )}
 
