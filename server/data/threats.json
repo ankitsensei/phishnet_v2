@@ -1,5 +1,228 @@
 [
   {
+    "id": "thr-5686",
+    "url": "https://[Screenshot]: WhatsApp Image 2026-09-13 at 15.59.11.jpeg - Ready for visual similarity matching.",
+    "domain": "[Screenshot]: WhatsApp Image 2026-09-13 at 15.59.11.jpeg - Ready for visual similarity matching.",
+    "targetBrand": "SBI YONO",
+    "threatType": "FAKE_UPI_PORTAL",
+    "discoverySource": "USER_REPORT",
+    "discoveryTimestamp": "2026-10-07 17:36:45",
+    "severity": "HIGH",
+    "status": "CONFIRMED_PHISH",
+    "similarityScore": 83.1,
+    "pHashDistance": 2,
+    "structuralSSIM": 0.987,
+    "domEditDistance": 0.03,
+    "logoConfidence": 95.4,
+    "ip": "185.220.101.44",
+    "asn": "AS44050",
+    "asnName": "Petersburg Offshore Networks",
+    "country": "Seychelles (RU Host)",
+    "countryCode": "SC",
+    "registrar": "NameSilo LLC",
+    "sslIssuer": "Let's Encrypt Authority E6",
+    "sslSerial": "04a2991823ab",
+    "dnsNameservers": [],
+    "extractedUPI_VPA": [
+      "sbiyono.instantkyc@paytm",
+      "refund.sbiyono@ybl"
+    ],
+    "extractedPhoneNumbers": [
+      "+91 98765 43210"
+    ],
+    "campaignId": "camp-yono-01",
+    "campaignName": "Paytm Instant Cashback Ring",
+    "threatActorSyndicate": "GoldenQR Cyber Group",
+    "evasionTactics": {
+      "antiBotGating": true,
+      "canvasFingerprinting": true,
+      "geoFencingIndiaOnly": true,
+      "userAgentFiltering": true,
+      "devtoolsBlocker": true,
+      "dynamicDomRedirection": true,
+      "fakeSslBadge": true
+    },
+    "screenshotUrl": "/assets/evidence/sbi_clone.webp",
+    "genuineReferenceUrl": "https://onlinesbi.sbi / sbiyono.sbi",
+    "evidenceHash": "86fca21d59f635bf9a60e3073c0844abb8ef804b57ecbe4b05d2ae031f13648d",
+    "timeline": [
+      {
+        "time": "23:06:45",
+        "event": "Source analyzed: detected 83.1% Fake probability",
+        "actor": "Autonomous Sentinel Engine"
+      }
+    ]
+  },
+  {
+    "id": "thr-6861",
+    "url": "https://www.onlinesbi.sbi",
+    "domain": "www.onlinesbi.sbi",
+    "targetBrand": "SBI YONO",
+    "threatType": "FAKE_UPI_PORTAL",
+    "discoverySource": "USER_REPORT",
+    "discoveryTimestamp": "2026-10-07 17:36:06",
+    "severity": "HIGH",
+    "status": "CONFIRMED_PHISH",
+    "similarityScore": 78,
+    "pHashDistance": 2,
+    "structuralSSIM": 0.989,
+    "domEditDistance": 0.03,
+    "logoConfidence": 98.2,
+    "ip": "103.209.97.9",
+    "asn": "AS44050",
+    "asnName": "Petersburg Offshore Networks",
+    "country": "Seychelles (RU Host)",
+    "countryCode": "SC",
+    "registrar": "NameSilo LLC",
+    "sslIssuer": "DigiCert EV RSA CA G2",
+    "sslSerial": "0E5AF48B9256D7AD66477944D3CC8BC4",
+    "dnsNameservers": [
+      "a3-66.akam.net",
+      "a1-148.akam.net",
+      "a22-65.akam.net",
+      "a5-66.akam.net",
+      "a20-64.akam.net",
+      "a16-64.akam.net"
+    ],
+    "extractedUPI_VPA": [
+      "sbiyono.instantkyc@paytm",
+      "refund.sbiyono@ybl"
+    ],
+    "extractedPhoneNumbers": [
+      "+91 98765 43210"
+    ],
+    "campaignId": "camp-yono-01",
+    "campaignName": "Op YONO-Shield Harvester",
+    "threatActorSyndicate": "ShadowVPA Syndicate (Jamtara-NCR Cell)",
+    "evasionTactics": {
+      "antiBotGating": true,
+      "canvasFingerprinting": true,
+      "geoFencingIndiaOnly": true,
+      "userAgentFiltering": true,
+      "devtoolsBlocker": true,
+      "dynamicDomRedirection": true,
+      "fakeSslBadge": true
+    },
+    "screenshotUrl": "/assets/evidence/sbi_clone.webp",
+    "genuineReferenceUrl": "https://onlinesbi.sbi / sbiyono.sbi",
+    "evidenceHash": "4a48d83aeae6345b3e7913d2d3085188e1c0a155a77a60f112196a603e89890d",
+    "timeline": [
+      {
+        "time": "23:06:06",
+        "event": "Source analyzed: detected 78% Fake probability",
+        "actor": "Autonomous Sentinel Engine"
+      }
+    ]
+  },
+  {
+    "id": "thr-0645",
+    "url": "https://paytm-kyc-unblock.top",
+    "domain": "paytm-kyc-unblock.top",
+    "targetBrand": "Paytm",
+    "threatType": "FAKE_UPI_PORTAL",
+    "discoverySource": "USER_REPORT",
+    "discoveryTimestamp": "2026-10-07 17:36:00",
+    "severity": "CRITICAL",
+    "status": "CONFIRMED_PHISH",
+    "similarityScore": 91.5,
+    "pHashDistance": 2,
+    "structuralSSIM": 0.987,
+    "domEditDistance": 0.03,
+    "logoConfidence": 94.6,
+    "ip": "185.220.101.44",
+    "asn": "AS44050",
+    "asnName": "Petersburg Offshore Networks",
+    "country": "Seychelles (RU Host)",
+    "countryCode": "SC",
+    "registrar": "NameSilo LLC",
+    "sslIssuer": "Let's Encrypt Authority E6",
+    "sslSerial": "04a2991823ab",
+    "dnsNameservers": [],
+    "extractedUPI_VPA": [
+      "paytm.instantkyc@paytm",
+      "refund.paytm@ybl"
+    ],
+    "extractedPhoneNumbers": [
+      "+91 98765 43210"
+    ],
+    "campaignId": "camp-yono-01",
+    "campaignName": "BHIM-Shield Dropper Trojan (APK)",
+    "threatActorSyndicate": "AndroidStealer-IN",
+    "evasionTactics": {
+      "antiBotGating": true,
+      "canvasFingerprinting": true,
+      "geoFencingIndiaOnly": true,
+      "userAgentFiltering": true,
+      "devtoolsBlocker": true,
+      "dynamicDomRedirection": true,
+      "fakeSslBadge": true
+    },
+    "screenshotUrl": "/assets/evidence/sbi_clone.webp",
+    "genuineReferenceUrl": "https://paytm.com",
+    "evidenceHash": "55302ac8fc9ef1b682a6ea651c189e93896d1f0bd195a2ae0c6c3881f870360d",
+    "timeline": [
+      {
+        "time": "23:06:00",
+        "event": "Source analyzed: detected 91.5% Fake probability",
+        "actor": "Autonomous Sentinel Engine"
+      }
+    ]
+  },
+  {
+    "id": "thr-2916",
+    "url": "https://<manifest package=\"com.google.android.apps.nbu.paisa.user.fake\">\n  <uses-permission android:name=\"android.permission.RECEIVE_SMS\" ",
+    "domain": "<manifest package=\"com.google.android.apps.nbu.paisa.user.fake\">\n  <uses-permission android:name=\"android.permission.RECEIVE_SMS\" ",
+    "targetBrand": "SBI YONO",
+    "threatType": "MALICIOUS_APK",
+    "discoverySource": "USER_REPORT",
+    "discoveryTimestamp": "2026-10-07 17:36:02",
+    "severity": "HIGH",
+    "status": "CONFIRMED_PHISH",
+    "similarityScore": 81.2,
+    "pHashDistance": 2,
+    "structuralSSIM": 0.987,
+    "domEditDistance": 0.03,
+    "logoConfidence": 95.8,
+    "ip": "185.220.101.44",
+    "asn": "AS44050",
+    "asnName": "Petersburg Offshore Networks",
+    "country": "Seychelles (RU Host)",
+    "countryCode": "SC",
+    "registrar": "NameSilo LLC",
+    "sslIssuer": "Let's Encrypt Authority E6",
+    "sslSerial": "04a2991823ab",
+    "dnsNameservers": [],
+    "extractedUPI_VPA": [
+      "sbiyono.instantkyc@paytm",
+      "refund.sbiyono@ybl"
+    ],
+    "extractedPhoneNumbers": [
+      "+91 98765 43210"
+    ],
+    "campaignId": "camp-yono-01",
+    "campaignName": "BHIM-Shield Dropper Trojan (APK)",
+    "threatActorSyndicate": "AndroidStealer-IN",
+    "evasionTactics": {
+      "antiBotGating": true,
+      "canvasFingerprinting": true,
+      "geoFencingIndiaOnly": true,
+      "userAgentFiltering": true,
+      "devtoolsBlocker": true,
+      "dynamicDomRedirection": true,
+      "fakeSslBadge": true
+    },
+    "screenshotUrl": "/assets/evidence/sbi_clone.webp",
+    "genuineReferenceUrl": "https://onlinesbi.sbi / sbiyono.sbi",
+    "evidenceHash": "e162d7698eb7c355f11910715713c5e388e216a6ad82b94aea795d8784faf935",
+    "timeline": [
+      {
+        "time": "23:06:02",
+        "event": "Source analyzed: detected 81.2% Fake probability",
+        "actor": "Autonomous Sentinel Engine"
+      }
+    ]
+  },
+  {
     "id": "thr-6023",
     "url": "https://[Image Screenshot]: Screenshot 2026-09-30 at 11.19.07 PM.png",
     "domain": "[Image Screenshot]: Screenshot 2026-09-30 at 11.19.07 PM.png",
@@ -108,13 +331,13 @@
     ]
   },
   {
-    "id": "thr-1822",
+    "id": "thr-3575",
     "url": "https://sbi-yono-pan-kyc-update.live/verify-account.php",
     "domain": "sbi-yono-pan-kyc-update.live",
     "targetBrand": "SBI YONO",
     "threatType": "FAKE_UPI_PORTAL",
     "discoverySource": "USER_REPORT",
-    "discoveryTimestamp": "2026-10-07 17:22:21",
+    "discoveryTimestamp": "2026-10-07 17:35:53",
     "severity": "HIGH",
     "status": "CONFIRMED_PHISH",
     "similarityScore": 88.1,
@@ -143,6 +366,60 @@
     ],
     "qrCodePayload": "upi://pay?pa=sbikyc.refund99@paytm&pn=SBI_KYC_VERIFICATION&am=1.00&cu=INR&tn=KYC_Activation_Refund",
     "campaignId": "camp-yono-01",
+    "campaignName": "BHIM-Shield Dropper Trojan (APK)",
+    "threatActorSyndicate": "AndroidStealer-IN",
+    "evasionTactics": {
+      "antiBotGating": true,
+      "canvasFingerprinting": true,
+      "geoFencingIndiaOnly": true,
+      "userAgentFiltering": true,
+      "devtoolsBlocker": true,
+      "dynamicDomRedirection": true,
+      "fakeSslBadge": true
+    },
+    "screenshotUrl": "/assets/evidence/sbi_clone.webp",
+    "genuineReferenceUrl": "https://onlinesbi.sbi / sbiyono.sbi",
+    "evidenceHash": "74b1f3bcc426b2e29de6273583709a0107eb9488fa487b2e52dd23711179ef93",
+    "timeline": [
+      {
+        "time": "23:05:53",
+        "event": "Source analyzed: detected 88.1% Fake probability",
+        "actor": "Autonomous Sentinel Engine"
+      }
+    ]
+  },
+  {
+    "id": "thr-6683",
+    "url": "https://phonepe-rewards-claim-5000.top",
+    "domain": "phonepe-rewards-claim-5000.top",
+    "targetBrand": "PhonePe",
+    "threatType": "SMISHING_LURE",
+    "discoverySource": "USER_REPORT",
+    "discoveryTimestamp": "2026-10-07 17:35:56",
+    "severity": "CRITICAL",
+    "status": "CONFIRMED_PHISH",
+    "similarityScore": 94.8,
+    "pHashDistance": 2,
+    "structuralSSIM": 0.987,
+    "domEditDistance": 0.03,
+    "logoConfidence": 95.4,
+    "ip": "185.220.101.44",
+    "asn": "AS44050",
+    "asnName": "Petersburg Offshore Networks",
+    "country": "Seychelles (RU Host)",
+    "countryCode": "SC",
+    "registrar": "NameSilo LLC",
+    "sslIssuer": "Let's Encrypt Authority E6",
+    "sslSerial": "04a2991823ab",
+    "dnsNameservers": [],
+    "extractedUPI_VPA": [
+      "phonepe.reward.claim@axl"
+    ],
+    "extractedPhoneNumbers": [
+      "+91 98765 43210"
+    ],
+    "qrCodePayload": "upi://pay?pa=phonepe.reward.claim@axl&pn=PhonePe_Reward_Disbursement&am=4999.00&cu=INR&tn=Cashback_PIN_Confirm",
+    "campaignId": "camp-yono-01",
     "campaignName": "Op YONO-Shield Harvester",
     "threatActorSyndicate": "ShadowVPA Syndicate (Jamtara-NCR Cell)",
     "evasionTactics": {
@@ -155,81 +432,13 @@
       "fakeSslBadge": true
     },
     "screenshotUrl": "/assets/evidence/sbi_clone.webp",
-    "genuineReferenceUrl": "https://onlinesbi.sbi / sbiyono.sbi",
-    "evidenceHash": "5156d6abf0dd46c4d10596556ffb95c6f5e24d8afce527dad2c5855250f0f402",
+    "genuineReferenceUrl": "https://phonepe.com",
+    "evidenceHash": "0a3faf74037f0e500ddebfa90c0d440df0cb57129d30fc9adb253f29d252d5da",
     "timeline": [
       {
-        "time": "22:52:21",
-        "event": "Source analyzed: detected 88.1% Fake probability",
+        "time": "23:05:56",
+        "event": "Source analyzed: detected 94.8% Fake probability",
         "actor": "Autonomous Sentinel Engine"
-      }
-    ]
-  },
-  {
-    "id": "thr-8902",
-    "url": "https://phonepe-rewards-claim-5000.top/scratch-card.html",
-    "domain": "phonepe-rewards-claim-5000.top",
-    "targetBrand": "PhonePe",
-    "threatType": "FAKE_UPI_PORTAL",
-    "discoverySource": "SMS_STREAM",
-    "discoveryTimestamp": "2026-10-07 14:05:12",
-    "severity": "CRITICAL",
-    "status": "TAKEDOWN_DISPATCHED",
-    "similarityScore": 96.8,
-    "pHashDistance": 4,
-    "structuralSSIM": 0.945,
-    "domEditDistance": 0.08,
-    "logoConfidence": 98.4,
-    "ip": "104.21.49.182",
-    "asn": "AS13335",
-    "asnName": "Cloudflare, Inc.",
-    "country": "United States",
-    "countryCode": "US",
-    "registrar": "Hostinger Operations, UAB",
-    "sslIssuer": "Cloudflare Inc ECC CA-3",
-    "sslSerial": "039b81f9a2e8820c77",
-    "dnsNameservers": [
-      "dora.ns.cloudflare.com",
-      "walt.ns.cloudflare.com"
-    ],
-    "extractedUPI_VPA": [
-      "phonepe.reward.claim@axl",
-      "cashback.desk77@ibl"
-    ],
-    "extractedPhoneNumbers": [
-      "+91 70041 29841"
-    ],
-    "qrCodePayload": "upi://pay?pa=phonepe.reward.claim@axl&pn=PhonePe_Reward_Disbursement&am=4999.00&cu=INR&tn=Cashback_PIN_Confirm",
-    "campaignId": "camp-yono-01",
-    "campaignName": "Op YONO-Shield Harvester",
-    "threatActorSyndicate": "ShadowVPA Syndicate (Jamtara-NCR Cell)",
-    "evasionTactics": {
-      "antiBotGating": true,
-      "canvasFingerprinting": false,
-      "geoFencingIndiaOnly": true,
-      "userAgentFiltering": true,
-      "devtoolsBlocker": true,
-      "dynamicDomRedirection": false,
-      "fakeSslBadge": true
-    },
-    "screenshotUrl": "/assets/evidence/phonepe_clone.webp",
-    "genuineReferenceUrl": "https://www.phonepe.com",
-    "evidenceHash": "c7d2194b8e010a34589dff52981ac288b50e4177d2948bf8238120bba5e917d0",
-    "timeline": [
-      {
-        "time": "14:05:12",
-        "event": "Lure SMS received: \"Congrats! ₹4,999 cashback credited in PhonePe. Claim now...\"",
-        "actor": "SMS Stream Parser"
-      },
-      {
-        "time": "14:05:18",
-        "event": "Simulated UPI Scratch card layout analyzed; fake PIN-harvesting modal found",
-        "actor": "Behavioural Engine"
-      },
-      {
-        "time": "14:06:00",
-        "event": "Automated CERT-In & Cloudflare Abuse takedown notices dispatched",
-        "actor": "Auto Takedown Robot"
       }
     ]
   },
