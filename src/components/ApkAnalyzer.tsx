@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Smartphone, ShieldAlert, FileCode, CheckCircle2, AlertTriangle, Terminal, Upload, Cpu, Download, Lock } from 'lucide-react';
+import { Smartphone, Shield, FileCode, AlertCircle } from 'lucide-react';
 
 interface ApkSample {
   id: string;
@@ -93,36 +93,28 @@ export const ApkAnalyzer: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'PERMISSIONS' | 'MANIFEST' | 'C2_TELEMETRY'>('PERMISSIONS');
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="p-4 rounded-xl bg-[#0c1017] border border-white/10 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2.5 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-400">
-            <Smartphone className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold text-white font-display flex items-center space-x-2">
-              <span>Android Banking Trojan & Fake App Static Analysis</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                APK Manifest • UPI Intent Interceptors
-              </span>
-            </h2>
-            <p className="text-xs text-slate-400">
-              Decompilation, dangerous SMS permissions, overlay attack detection and C2 extraction
-            </p>
-          </div>
+      <div className="p-5 rounded-lg bg-[#09090b] border border-[#27272a] flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="text-base font-semibold text-white tracking-tight">
+            Android Banking Trojan & Fake App Analysis Lab
+          </h2>
+          <p className="text-xs text-[#a1a1aa] mt-0.5">
+            Static decompilation, dangerous SMS permissions, overlay attack detection, and C2 exfiltration extraction.
+          </p>
         </div>
 
         {/* APK Selector */}
         <div className="flex items-center space-x-2">
-          <span className="text-xs text-slate-400 font-mono">Select Malware Sample:</span>
+          <span className="text-xs text-[#71717a] font-mono">Sample:</span>
           <select
             value={selectedApk.id}
             onChange={(e) => {
               const apk = SAMPLE_APKS.find(a => a.id === e.target.value);
               if (apk) setSelectedApk(apk);
             }}
-            className="bg-[#141b29] border border-white/10 text-xs rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+            className="bg-[#121214] border border-[#27272a] text-xs rounded-md px-3 py-1.5 text-white focus:outline-none focus:border-white font-mono"
           >
             {SAMPLE_APKS.map(a => (
               <option key={a.id} value={a.id}>
@@ -133,109 +125,98 @@ export const ApkAnalyzer: React.FC = () => {
         </div>
       </div>
 
-      {/* Overview Details Card */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl bg-[#0d121c] border border-rose-500/30">
-          <div className="text-[11px] uppercase font-mono text-slate-400">Malware Threat Level</div>
-          <div className="text-2xl font-bold font-mono text-rose-400 mt-1">{selectedApk.riskScore} / 100</div>
-          <div className="text-[10px] text-rose-300 font-mono mt-0.5">CRITICAL BANKING TROJAN</div>
+      {/* Metric Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 font-mono">
+        <div className="p-4 rounded-lg bg-[#09090b] border border-[#27272a]">
+          <div className="text-[11px] uppercase text-[#71717a]">Malware Risk Score</div>
+          <div className="text-2xl font-bold text-white mt-1">{selectedApk.riskScore}%</div>
+          <div className="text-[10px] text-[#a1a1aa] mt-0.5">CRITICAL TROJAN</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#0d121c] border border-white/10">
-          <div className="text-[11px] uppercase font-mono text-slate-400">Targeted Entity</div>
+        <div className="p-4 rounded-lg bg-[#09090b] border border-[#27272a]">
+          <div className="text-[11px] uppercase text-[#71717a]">Targeted App</div>
           <div className="text-lg font-bold text-white mt-1">{selectedApk.targetedBrand}</div>
-          <div className="text-[10px] text-cyan-400 font-mono mt-0.5">{selectedApk.packageName}</div>
+          <div className="text-[10px] text-[#71717a] truncate mt-0.5">{selectedApk.packageName}</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#0d121c] border border-white/10">
-          <div className="text-[11px] uppercase font-mono text-slate-400">Dangerous Permissions</div>
-          <div className="text-2xl font-bold font-mono text-amber-300 mt-1">{selectedApk.dangerousPermissions.length}</div>
-          <div className="text-[10px] text-slate-400 font-mono mt-0.5">SMS & Accessibility Abuse</div>
+        <div className="p-4 rounded-lg bg-[#09090b] border border-[#27272a]">
+          <div className="text-[11px] uppercase text-[#71717a]">Dangerous Perms</div>
+          <div className="text-2xl font-bold text-white mt-1">{selectedApk.dangerousPermissions.length}</div>
+          <div className="text-[10px] text-[#71717a] mt-0.5">SMS & Accessibility Abuse</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#0d121c] border border-white/10">
-          <div className="text-[11px] uppercase font-mono text-slate-400">C2 Channels</div>
-          <div className="text-2xl font-bold font-mono text-purple-300 mt-1">{selectedApk.c2Endpoints.length + 1}</div>
-          <div className="text-[10px] text-slate-400 font-mono mt-0.5">HTTPS API + Telegram Bot</div>
+        <div className="p-4 rounded-lg bg-[#09090b] border border-[#27272a]">
+          <div className="text-[11px] uppercase text-[#71717a]">C2 Channels</div>
+          <div className="text-2xl font-bold text-white mt-1">{selectedApk.c2Endpoints.length + 1}</div>
+          <div className="text-[10px] text-[#71717a] mt-0.5">HTTPS Endpoint + Telegram</div>
         </div>
       </div>
 
-      {/* Main Analysis Tabs */}
-      <div className="p-5 rounded-xl bg-[#0b0f17] border border-white/10 space-y-4 shadow-2xl">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
-          <div className="flex items-center space-x-2">
-            <span className="text-xs font-mono font-bold text-white uppercase">
-              Static Forensics & Smali Decompile
-            </span>
-            <span className="text-[11px] font-mono text-slate-400">
-              SHA256: {selectedApk.sha256.slice(0, 16)}...
-            </span>
+      {/* Main Analysis View */}
+      <div className="p-5 rounded-lg bg-[#09090b] border border-[#27272a] space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#27272a] pb-3">
+          <div className="text-xs font-mono font-bold text-white uppercase">
+            Static Forensics: {selectedApk.packageName}
           </div>
 
-          <div className="flex items-center space-x-2 bg-[#121824] p-1 rounded-lg border border-white/10 text-xs">
+          <div className="flex items-center space-x-1 bg-[#121214] p-1 rounded-md border border-[#27272a] text-xs">
             <button
               onClick={() => setActiveTab('PERMISSIONS')}
-              className={`px-3 py-1 rounded font-medium transition-all ${
+              className={`px-3 py-1 rounded font-medium transition-colors ${
                 activeTab === 'PERMISSIONS'
-                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white text-black font-semibold'
+                  : 'text-[#a1a1aa] hover:text-white'
               }`}
             >
               Dangerous Permissions
             </button>
             <button
               onClick={() => setActiveTab('MANIFEST')}
-              className={`px-3 py-1 rounded font-medium transition-all ${
+              className={`px-3 py-1 rounded font-medium transition-colors ${
                 activeTab === 'MANIFEST'
-                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white text-black font-semibold'
+                  : 'text-[#a1a1aa] hover:text-white'
               }`}
             >
               AndroidManifest.xml
             </button>
             <button
               onClick={() => setActiveTab('C2_TELEMETRY')}
-              className={`px-3 py-1 rounded font-medium transition-all ${
+              className={`px-3 py-1 rounded font-medium transition-colors ${
                 activeTab === 'C2_TELEMETRY'
-                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white text-black font-semibold'
+                  : 'text-[#a1a1aa] hover:text-white'
               }`}
             >
-              C2 & Telegram Endpoints
+              C2 Endpoints
             </button>
           </div>
         </div>
 
         {/* Tab 1: Permissions */}
         {activeTab === 'PERMISSIONS' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="space-y-3 font-mono">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
               {selectedApk.dangerousPermissions.map((perm) => (
-                <div
-                  key={perm}
-                  className="p-3 rounded-lg bg-rose-950/20 border border-rose-500/30 flex items-start space-x-3 text-xs"
-                >
-                  <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <div className="font-mono font-bold text-rose-300 break-all">{perm}</div>
-                    <div className="text-[11px] text-slate-400 mt-1">
-                      {perm.includes('RECEIVE_SMS') && 'Enables background interception of 2FA Bank OTPs.'}
-                      {perm.includes('BIND_ACCESSIBILITY_SERVICE') && 'Used to hijack screen touches and auto-approve UPI Collect transfers.'}
-                      {perm.includes('SYSTEM_ALERT_WINDOW') && 'Draws fake phishing overlays on top of genuine banking applications.'}
-                      {perm.includes('READ_PHONE_STATE') && 'Extracts SIM IMSI/IMEI for mobile number identity spoofing.'}
-                      {perm.includes('REQUEST_INSTALL_PACKAGES') && 'Acts as a dropper to download second-stage malware payloads.'}
-                      {perm.includes('QUERY_ALL_PACKAGES') && 'Scans device to check if PhonePe, Paytm, or SBI YONO is installed.'}
-                      {perm.includes('READ_CONTACTS') && 'Exfiltrates victim address book to spam smishing SMS lures.'}
-                    </div>
+                <div key={perm} className="p-3 rounded bg-[#121214] border border-[#27272a] text-xs space-y-1">
+                  <div className="font-bold text-white break-all">{perm}</div>
+                  <div className="text-[11px] text-[#a1a1aa]">
+                    {perm.includes('RECEIVE_SMS') && 'Interception of 2FA Banking OTPs.'}
+                    {perm.includes('BIND_ACCESSIBILITY_SERVICE') && 'Screen touch interception & auto-approval of UPI collect transfers.'}
+                    {perm.includes('SYSTEM_ALERT_WINDOW') && 'Phishing overlays rendered over legitimate bank apps.'}
+                    {perm.includes('READ_PHONE_STATE') && 'SIM IMSI/IMEI extraction for identity theft.'}
+                    {perm.includes('REQUEST_INSTALL_PACKAGES') && 'Dropper payload for second-stage payloads.'}
+                    {perm.includes('QUERY_ALL_PACKAGES') && 'Scans device for PhonePe, Paytm, or SBI apps.'}
+                    {perm.includes('READ_CONTACTS') && 'Address book exfiltration for smishing spam.'}
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="p-3.5 rounded-lg bg-[#090d14] border border-white/5 space-y-2">
-              <div className="text-xs font-mono font-bold text-cyan-400 uppercase">Malicious UPI Intent Handlers:</div>
+            <div className="p-3.5 rounded bg-[#000000] border border-[#27272a] space-y-1.5 text-xs">
+              <div className="text-white font-bold uppercase text-[11px]">Malicious UPI Intent Hooks:</div>
               {selectedApk.intentFilters.map((intent, idx) => (
-                <div key={idx} className="p-2 rounded bg-cyan-950/20 border border-cyan-500/30 font-mono text-xs text-cyan-300">
+                <div key={idx} className="p-1.5 rounded bg-[#121214] border border-[#27272a] text-[#d4d4d8]">
                   {intent}
                 </div>
               ))}
@@ -245,7 +226,7 @@ export const ApkAnalyzer: React.FC = () => {
 
         {/* Tab 2: AndroidManifest.xml */}
         {activeTab === 'MANIFEST' && (
-          <pre className="p-4 rounded-lg bg-[#06090e] border border-white/10 font-mono text-xs text-slate-300 overflow-x-auto leading-relaxed">
+          <pre className="p-4 rounded bg-[#000000] border border-[#27272a] font-mono text-xs text-[#d4d4d8] overflow-x-auto leading-relaxed">
 {`<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="${selectedApk.packageName}"
@@ -283,31 +264,26 @@ export const ApkAnalyzer: React.FC = () => {
           </pre>
         )}
 
-        {/* Tab 3: C2 Endpoints */}
+        {/* Tab 3: C2 Telemetry */}
         {activeTab === 'C2_TELEMETRY' && (
           <div className="space-y-3 font-mono text-xs">
-            <div className="p-3.5 rounded-lg bg-[#090d14] border border-white/5 space-y-2">
-              <div className="text-rose-400 font-bold uppercase">Extracted Exfiltration Endpoints:</div>
+            <div className="p-3.5 rounded bg-[#000000] border border-[#27272a] space-y-2">
+              <div className="text-white font-bold uppercase text-[11px]">Extracted C2 Gateways:</div>
               {selectedApk.c2Endpoints.map((ep, idx) => (
-                <div key={idx} className="p-2 rounded bg-rose-950/20 border border-rose-500/30 text-rose-300 break-all">
+                <div key={idx} className="p-2 rounded bg-[#121214] border border-[#27272a] text-[#d4d4d8] break-all">
                   POST {ep}
                 </div>
               ))}
             </div>
 
             {selectedApk.telegramBotHook && (
-              <div className="p-3.5 rounded-lg bg-[#090d14] border border-white/5 space-y-2">
-                <div className="text-cyan-400 font-bold uppercase">Direct Telegram Exfiltration Bot Hook:</div>
-                <div className="p-2 rounded bg-cyan-950/20 border border-cyan-500/30 text-cyan-300 break-all">
+              <div className="p-3.5 rounded bg-[#000000] border border-[#27272a] space-y-2">
+                <div className="text-white font-bold uppercase text-[11px]">Telegram Exfiltration Hook:</div>
+                <div className="p-2 rounded bg-[#121214] border border-[#27272a] text-[#d4d4d8] break-all">
                   {selectedApk.telegramBotHook}
                 </div>
               </div>
             )}
-
-            <div className="p-3.5 rounded-lg bg-[#090d14] border border-white/5">
-              <div className="text-amber-400 font-bold uppercase mb-1">Payload Analysis:</div>
-              <div className="text-slate-300 text-xs">{selectedApk.injectedPayload}</div>
-            </div>
           </div>
         )}
       </div>

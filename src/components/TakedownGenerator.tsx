@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Send, CheckCircle2, Copy, Download, ShieldAlert, Lock, Terminal, ExternalLink, RefreshCw } from 'lucide-react';
+import { FileText, Send, CheckCircle, Copy, Download } from 'lucide-react';
 import { ThreatItem } from '../types/threat';
 
 interface TakedownGeneratorProps {
@@ -138,7 +138,6 @@ The server is actively serving credential harvesting scripts targeting Indian UP
 Evidence Hash: ${threat.evidenceHash}`;
     }
 
-    // BANK_CSIRT
     return `To: security-csirt@${threat.targetBrand.toLowerCase().replace(/\s+/g, '')}.com
 Subject: [CONFIRMED PHISH] Active Typosquat Clone Targeting ${threat.targetBrand}
 
@@ -179,33 +178,25 @@ Takedown notices have been automatically pre-dispatched to CERT-In, NPCI, and ${
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="p-4 rounded-xl bg-[#0c1017] border border-white/10 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400">
-            <FileText className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold text-white font-display flex items-center space-x-2">
-              <span>Automated 1-Click Takedown & Evidence Dispatcher</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                CERT-In • NPCI • Registrar RFC-2822
-              </span>
-            </h2>
-            <p className="text-xs text-slate-400">
-              Generates RFC-compliant abuse reports, cryptographic hashes, and WHOIS/DNS evidence packets
-            </p>
-          </div>
+      <div className="p-5 rounded-lg bg-[#09090b] border border-[#27272a] flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="text-base font-semibold text-white tracking-tight">
+            Automated Takedown Report & Evidence Package Generator
+          </h2>
+          <p className="text-xs text-[#a1a1aa] mt-0.5">
+            Generates standardized CERT-In Form 7A, NPCI UPI Shield, and Registrar RFC-2822 abuse notices.
+          </p>
         </div>
 
-        {/* Threat Selector */}
+        {/* Target Selector */}
         <div className="flex items-center space-x-2">
-          <span className="text-xs text-slate-400 font-mono">Select Target:</span>
+          <span className="text-xs text-[#71717a] font-mono">Target:</span>
           <select
             value={activeThreatId}
             onChange={(e) => setActiveThreatId(e.target.value)}
-            className="bg-[#141b29] border border-white/10 text-xs rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+            className="bg-[#121214] border border-[#27272a] text-xs rounded-md px-3 py-1.5 text-white focus:outline-none focus:border-white font-mono"
           >
             {threats.map(t => (
               <option key={t.id} value={t.id}>
@@ -219,49 +210,50 @@ Takedown notices have been automatically pre-dispatched to CERT-In, NPCI, and ${
       {/* Recipient Channel Selector */}
       <div className="flex flex-wrap gap-2">
         {[
-          { id: 'CERT_IN', label: 'CERT-In Form 7A Notice', desc: 'Govt National CSIRT' },
-          { id: 'NPCI_UPI', label: 'NPCI UPI Fraud Desk', desc: 'VPA Freeze Request' },
+          { id: 'CERT_IN', label: 'CERT-In Form 7A Notice', desc: 'Government CSIRT' },
+          { id: 'NPCI_UPI', label: 'NPCI UPI Fraud Desk', desc: 'VPA Freeze Directive' },
           { id: 'REGISTRAR', label: 'Registrar Abuse Desk', desc: `${threat.registrar}` },
           { id: 'HOST_CDN', label: 'Host / CDN Abuse Desk', desc: `${threat.asnName}` },
-          { id: 'BANK_CSIRT', label: 'Brand Security Team', desc: `${threat.targetBrand} CSIRT` },
+          { id: 'BANK_CSIRT', label: 'Brand Security Desk', desc: `${threat.targetBrand} CSIRT` },
         ].map((item) => (
           <button
             key={item.id}
             onClick={() => setRecipientType(item.id as any)}
-            className={`flex-1 min-w-[170px] p-3 rounded-xl border text-left transition-all ${
+            className={`flex-1 min-w-[170px] p-3 rounded-lg border text-left transition-colors ${
               recipientType === item.id
-                ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-300 shadow-lg shadow-cyan-500/10'
-                : 'bg-[#0d121c] border-white/10 text-slate-400 hover:text-slate-200 hover:bg-[#121824]'
+                ? 'bg-white text-black border-white'
+                : 'bg-[#09090b] border-[#27272a] text-[#a1a1aa] hover:text-white hover:bg-[#121214]'
             }`}
           >
-            <div className="font-semibold text-xs text-white">{item.label}</div>
-            <div className="text-[10px] text-slate-400 font-mono truncate mt-0.5">{item.desc}</div>
+            <div className={`font-semibold text-xs ${recipientType === item.id ? 'text-black' : 'text-white'}`}>
+              {item.label}
+            </div>
+            <div className={`text-[10px] font-mono truncate mt-0.5 ${recipientType === item.id ? 'text-[#3f3f46]' : 'text-[#71717a]'}`}>
+              {item.desc}
+            </div>
           </button>
         ))}
       </div>
 
-      {/* Report Preview & Code Area */}
-      <div className="rounded-xl bg-[#090d14] border border-white/10 overflow-hidden shadow-2xl">
-        <div className="px-4 py-2.5 bg-[#101622] border-b border-white/10 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-            <span className="text-xs font-mono font-semibold text-slate-200">
-              Generated Report: {recipientType} for {threat.domain}
-            </span>
+      {/* Report Code View */}
+      <div className="rounded-lg bg-[#000000] border border-[#27272a] overflow-hidden">
+        <div className="px-4 py-2.5 bg-[#09090b] border-b border-[#27272a] flex flex-wrap items-center justify-between gap-2">
+          <div className="text-xs font-mono font-semibold text-white">
+            Abuse Format: {recipientType} for {threat.domain}
           </div>
 
           <div className="flex items-center space-x-2">
             <button
               onClick={handleCopy}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 text-xs font-mono transition-all"
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-[#121214] hover:bg-[#1f1f23] text-white border border-[#27272a] text-xs font-mono transition-colors"
             >
-              {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              <Copy className="w-3.5 h-3.5" />
               <span>{copied ? 'Copied' : 'Copy'}</span>
             </button>
 
             <button
               onClick={handleDownload}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 text-xs font-mono transition-all"
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-[#121214] hover:bg-[#1f1f23] text-white border border-[#27272a] text-xs font-mono transition-colors"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download .TXT</span>
@@ -269,26 +261,21 @@ Takedown notices have been automatically pre-dispatched to CERT-In, NPCI, and ${
 
             <button
               onClick={handleDispatch}
-              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white text-xs font-semibold shadow-lg shadow-rose-600/30 transition-all"
+              className="flex items-center space-x-1.5 px-4 py-1.5 rounded bg-white text-black hover:bg-[#e4e4e7] text-xs font-semibold shadow-sm transition-colors"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>{dispatched ? 'Dispatching...' : 'Dispatch Automated Takedown'}</span>
+              <span>{dispatched ? 'Dispatching Notice...' : 'Dispatch Automated Takedown'}</span>
             </button>
           </div>
         </div>
 
-        {/* Report Monospace Viewer */}
-        <pre className="p-5 text-xs font-mono text-cyan-200/90 bg-[#06090e] overflow-x-auto whitespace-pre leading-relaxed border-b border-white/5 max-h-[460px]">
+        <pre className="p-5 text-xs font-mono text-[#d4d4d8] bg-[#000000] overflow-x-auto whitespace-pre leading-relaxed border-b border-[#27272a] max-h-[460px]">
           {reportText}
         </pre>
 
-        {/* Footer info */}
-        <div className="px-4 py-2.5 bg-[#0a0e16] flex flex-wrap items-center justify-between text-[11px] text-slate-400 font-mono gap-2">
-          <div>Cryptographic Digest: SHA256({threat.evidenceHash.slice(0, 16)}...)</div>
-          <div className="text-emerald-400 flex items-center space-x-1">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Digital Evidence Timestamped on Immutable Audit Log</span>
-          </div>
+        <div className="px-4 py-2.5 bg-[#09090b] flex flex-wrap items-center justify-between text-[11px] text-[#71717a] font-mono gap-2">
+          <div>Integrity Digest: SHA256({threat.evidenceHash.slice(0, 16)}...)</div>
+          <div className="text-white">Immutable Forensic Snapshot Timestamped</div>
         </div>
       </div>
     </div>
